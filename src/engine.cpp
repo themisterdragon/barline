@@ -678,7 +678,7 @@ void Engine::tap(uint8_t note, int64_t at, const std::string &what) {
 // Record/Play (11), Stop (7), and Clear (49) work on the track the pedal has selected (its own feet can
 // change that): a press for that track selects it 10 ms before. B's own notes (Sync/Song) need none.
 void Engine::select_before(int track, int64_t at, const std::string &what) {
-    if (set_.pedal_mode != 1) tap(track ? pedal::SELECT_B : pedal::SELECT_A, at - kit::RATE / 100, what.rfind("#", 0) == 0 ? what : "");
+    if (set_.pedal_mode != 1) tap(track ? pedal::SELECT_B : pedal::SELECT_A, at - kit::RATE / 100, what);
 }
 
 // A Record/Play press for one track. Single mode has one track (A). Multi: select the track, then the
@@ -726,6 +726,16 @@ void Engine::drop_switch() {
 
 void Engine::clear_track(int track) {
     post([this, track] {
+        // nothing still on its way to that track may follow the Clear: on an empty track a Play press
+        // (a switch waiting for its bar) or a loop's closing press starts a recording nothing closes
+        if (switch_at_ >= 0 && frame_ < switch_at_ && switch_to_ == track) drop_switch();
+        if (loop_action_) {
+            drop_loop_presses();
+            back_to_a_ = a_after_b_ = false;
+            loop_action_ = 0;
+            loop_.clear();
+            prev_start_ = -1;
+        }
         select_before(track, frame_ + kit::RATE / 100);
         tap(pedal::CLEAR, frame_ + kit::RATE / 100);
         if (log) log(set_.pedal_mode == 1 ? "Clear" : track ? "Clear B" : "Clear A");
@@ -773,6 +783,10 @@ bool Engine::restart_track(int track, int64_t bar_line, const std::string &what)
 void Engine::play_track(int track) {
     post([this, track] {
         std::string tr = track ? "B" : "A";
+        if (loop_action_) {   // a Play press now would close (or reopen) the recording
+            if (log) log(loop_ + ": Play waits until it closes");
+            return;
+        }
         if (has_loop_[track] == 0) {
             if (log) log("Track " + tr + " is empty (a press there would start recording)");
             return;
@@ -794,6 +808,103 @@ void Engine::play_track(int track) {
         }
         restart_track(track, bar_press_time() + lead(), "Play " + tr);
     });
+}
+
+// A tap on a track. Only a track Barline knows holds a loop gets a press from one tap: anything else
+// would send Record/Play to a track that may be empty, and the pedal would start a recording that
+// nothing closes (it did: tap B to pick it, Record, and B recorded on and on).
+void Engine::pick_track(int track) {
+    post([this, track] {
+        std::string tr = track ? "B" : "A";
+        if (track == 1 && set_.pedal_mode == 1) return;
+        if (loop_action_) {
+            if (log) log(loop_ + " (it closes by itself; Record closes it early)");
+            return;
+        }
+        if (!song_like()) return;   // Multi/Sync: a tap only picks the track for the loop buttons
+        if (has_loop_[track] == 0) {
+            unsure_tap_ = -1;
+            if (log) log("Track " + tr + " is empty: Record starts its loop");
+            return;
+        }
+        bool switching = switch_at_ >= 0 && frame_ < switch_at_;
+        int heading = switching ? switch_to_ : playing_track_;
+        if (heading == track) return;   // already playing (or about to)
+        if (has_loop_[track] < 0) {
+            if (unsure_tap_ != track || frame_ - unsure_tap_at_ > 4 * (int64_t)kit::RATE) {
+                unsure_tap_ = track;
+                unsure_tap_at_ = frame_;
+                if (log) log("Track " + tr + ": Record starts a new loop. A loop already on the pedal? Tap " + tr + " again to play it");
+                return;
+            }
+        }
+        unsure_tap_ = -1;
+        if (switching && shown_track_ == track) {   // picked again while a switch waits: stay
+            drop_switch();
+            if (log) log("Staying on " + tr);
+            return;
+        }
+        if (!grid_) {
+            press_track(track, frame_, "Play " + tr);
+            has_loop_[track] = 1;
+            playing_track_ = track;
+            pedal_state_ = "playing " + tr;
+            if (log) log("Play " + tr);
+            return;
+        }
+        restart_track(track, bar_press_time() + lead(), "Play " + tr);
+    });
+}
+
+void Engine::record_or_layer(int bars, int pick) {
+    post([this, bars, pick] {
+        int track = set_.pedal_mode == 1 ? 0 : pick;
+        std::string tr = track ? "B" : "A";
+        if (loop_action_) {   // the same track closes early; the other goes on when this one closes
+            if (prev_start_ >= 0 && frame_ < loop_start_) {   // Record A then B: A first, B already waiting
+                if (log) log(loop_ + " (Stop Loops to stop it)");
+                return;
+            }
+            begin_loop(loop_action_, bars, track);
+            return;
+        }
+        if (has_loop_[track] != 1) {
+            if (!grid_) {   // nothing running: count in first, then record
+                start_grid();
+                counting_ = true;
+                count_bars_left_ = std::max(1, set_.count_in);
+                playing_ = false;
+                part_bar_ = -1;
+                start_bar(frame_);
+            }
+            begin_loop(1, bars, track);
+            return;
+        }
+        if (!grid_) return;
+        // Song mode, a full track that isn't the one playing: a press there would only switch to it, and
+        // the closing press would then start a layer that never ends. Switch to it first.
+        bool switching = switch_at_ >= 0 && frame_ < switch_at_;
+        int heading = switching ? switch_to_ : playing_track_;
+        if (song_like() && heading != track) {
+            restart_track(track, bar_press_time() + lead(), "Play " + tr);
+            if (log) log("Press Record again once " + tr + " is playing to layer on it");
+            return;
+        }
+        if (switching) {
+            if (log) log("Wait for " + tr + " to come in, then layer on it");
+            return;
+        }
+        begin_loop(2, bars, track);
+    });
+}
+
+void Engine::drop_loop_presses() {
+    // note-ons only: a let-go always goes (a held note is a long press: Undo, Clear)
+    pending_.erase(std::remove_if(pending_.begin(), pending_.end(), [](const Pending &p) {
+        if (p.bytes.empty() || (p.bytes[0] & 0xF0) != 0x90) return false;
+        for (const char *w : {"Record ", "Overdub ", "#close", "Then A"})
+            if (p.what.rfind(w, 0) == 0) return true;
+        return false; }), pending_.end());
 }
 
 // what the screen shows as playing changes when the pedal does (on that bar line), not when it's asked
@@ -880,6 +991,29 @@ void Engine::end_loops(int64_t line, bool on_bar) {
 
 void Engine::stop_loops(Quant q) {
     post([this, q] {
+        if (loop_action_) {
+            // which track the pedal is recording now (Record A then B: A, until B's turn), if it started
+            bool chain_first = prev_start_ >= 0 && frame_ < loop_start_;
+            int rt = chain_first ? 1 - loop_track_ : loop_track_;
+            bool started = chain_first || frame_ >= loop_start_ - lead();
+            drop_loop_presses();
+            back_to_a_ = a_after_b_ = false;
+            loop_action_ = 0;
+            loop_.clear();
+            prev_start_ = -1;
+            if (started) {
+                has_loop_[rt] = 1;
+                if (chain_first) has_loop_[1 - rt] = has_loop_[1 - rt] == 1 ? 1 : -1;
+                int64_t line = next_boundary(q);
+                if (q != NOW && grid_ && line - lead() < frame_ + kit::RATE / 200) line += (int64_t)std::llround(bar_frames_);
+                stop_track(rt, std::max(frame_, line - (q == NOW ? 0 : lead())), "Stop loops");
+                stopped_[0] = stopped_[1] = q == BAR && grid_;
+                playing_track_ = -1;
+                pedal_state_ = "stopped";
+                if (log) log(std::string("Recording on ") + (rt ? "B" : "A") + " stops on the bar (the loop is kept)");
+            } else if (log) log("Recording called off");
+            return;
+        }
         back_to_a_ = a_after_b_ = false;
         loop_action_ = 0;
         loop_.clear();
@@ -895,14 +1029,9 @@ void Engine::stop_loops(Quant q) {
     });
 }
 
-void Engine::cancel_loop() {
-    post([this] {
-        back_to_a_ = a_after_b_ = false;
-        loop_action_ = 0;
-        loop_.clear();
-        pending_.erase(std::remove_if(pending_.begin(), pending_.end(), [](const Pending &p) { return !p.what.empty(); }), pending_.end());   // (#close too)
-    });
-}
+// Called off before it starts: its presses are dropped. Already recording on the pedal: dropping the
+// close would leave it recording for ever, so it stops on the bar instead (Undo takes it away).
+void Engine::cancel_loop() { stop_loops(BAR); }
 
 void Engine::panic() {
     post([this] {

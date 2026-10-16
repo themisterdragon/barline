@@ -167,6 +167,14 @@ public:
     // play the loop on track A (0) or B (1), on the next bar line (Song mode: the other one stops).
     // Nothing happens if that track has no loop (a press there would start recording).
     void play_track(int track);
+    // a tap on track A or B (the iPad's tiles, the A/B keys). Song mode: a track known to hold a loop
+    // plays from the next bar line. Nothing goes to the pedal for a track that's empty, or that Barline
+    // isn't sure about (a Record/Play there would start a recording nothing closes): a second tap on an
+    // unsure track within a few seconds plays it (a loop left on the pedal). Ignored while a loop records.
+    void pick_track(int track);
+    // the one Record button: a new loop on an empty (or unsure) track, a layer on a full one; on the
+    // track recording now, it closes it on the next bar line
+    void record_or_layer(int bars, int track);
     void clear_track(int track);   // Clear on that track (selected first: Clear works on the pedal's selected track)
     void cleared(int track);     // a track was cleared (-1 = both, e.g. a new slot)
     void panic();                // all notes off, clock stop, pending presses dropped
@@ -251,6 +259,10 @@ private:
     int64_t switch_at_ = -1;                  // ...this frame (-1 none; switch_to_ -1 = the loops stop)
     int64_t switch_stop_at_ = -1;             // a switch that waits a bar: when its Stop goes
     int64_t switch_press_at_ = -1;            // when its Play (or the loops' Stop) goes: after that it can't be taken back
+    int unsure_tap_ = -1;                     // pick_track: a first tap on a track Barline isn't sure about...
+    int64_t unsure_tap_at_ = 0;               // ...and when
+    bool recording_now() const { return loop_action_ != 0; }
+    void drop_loop_presses();                 // a loop's presses not sent yet (Record, close, Then A) are dropped
     void end_loops(int64_t line, bool on_bar = true);   // every loop stops on that line (the drums' ending)
     int ending_stop_beat() const;                      // the beat of the ending's last hit
     void loops_end_with(int64_t ending_start, int bars_in);

@@ -402,12 +402,16 @@ bool Control::act(const std::string &a, const std::string &arg) {
     } else if (a == "record_ab") {   // A, then B straight on, then A plays
         e_.record_through(bars_for(0), bars_for(1));
     } else if (a == "overdub") e_.overdub(bars_for(track), track);
-    else if (a == "smart") {   // one footswitch: the first loop, then layers on top
+    else if (a == "smart") {   // one footswitch: the first loop, then layers on top (Record A → B, when picked)
         engine::Status st = e_.status();
-        if (!(track ? st.has_b : st.has_a))
-            e_.record_loop(bars_for(track), track);
+        if (cfg_.record_ab && cfg_.pedal_mode != "single" && !st.has_a && !st.has_b && st.loop.empty())
+            e_.record_through(bars_for(0), bars_for(1));
         else
-            e_.overdub(bars_for(track), track);
+            e_.record_or_layer(bars_for(track), track);   // decided by the engine, with what it knows right now
+    } else if (a == "record_mode") {   // what the Record button does on new loops: "one" loop, or "ab"
+        cfg_.record_ab = arg == "ab" ? true : arg == "one" ? false : !cfg_.record_ab;
+        config::save(cfg_);
+        note(cfg_.record_ab ? "Record: A, then B straight on, then A plays" : "Record: one loop at a time");
     } else if (a == "undo" || a == "undo2") e_.press(pedal::UNDO, engine::NOW);
     else if (a == "clear") {
         e_.clear_track(track);
@@ -416,23 +420,16 @@ bool Control::act(const std::string &a, const std::string &arg) {
     else if (a == "play_a" || a == "play_b") e_.play_track(a == "play_b" ? 1 : 0);
     else if (a == "select") {   // pick a track (A or B) for the loop buttons
         int t = arg == "B" || arg == "b" ? 1 : 0;
+        if (t == 1 && cfg_.pedal_mode == "single") return true;
         // nothing goes to the pedal as a selection: there, selecting in Song mode stops the playing loop
         // without starting the other. Each loop press selects its own track a moment before it goes.
-        // Song mode (or not said): picking a track plays its loop from the next bar line (the other one
-        // stops), unless Barline knows it's empty: then it's just ready to record
-        engine::Status st = e_.status();
-        bool empty = t ? st.empty_b : st.empty_a;
-        bool full = !empty;
-        bool song = cfg_.pedal_mode == "song" || cfg_.pedal_mode == "off";
-        int heading = st.next_track == 0 || st.next_track == 1 ? st.next_track : st.next_track == 2 ? -1 : st.playing_track;   // where it's going
-        if (song && !empty && heading != t) {
-            track = t;
-            e_.play_track(t);
-        } else if (t != track) {
-            track = t;
-            note(std::string("Loop buttons work on track ") + (track ? "B" : "A") +
-                 (song && !full && st.playing_track >= 0 ? " (empty: Record starts its loop)" : ""));
-        }
+        // Song mode (or not said): the engine plays a track it knows holds a loop from the next bar line;
+        // an empty or unsure one is only picked, for Record (it decides with what it knows right now: this
+        // thread's status can be a moment old, and a wrong guess here started recordings nothing closed)
+        bool changed = t != track;
+        track = t;
+        e_.pick_track(t);
+        if (changed && cfg_.pedal_mode != "song" && cfg_.pedal_mode != "off") note(std::string("Loop buttons work on track ") + (t ? "B" : "A"));
     } else if (a == "clock_div") {
         cfg_.clock_div = std::max(0, std::min(4, (int)num));
         push_settings();
@@ -673,7 +670,7 @@ std::string Control::json() {
       << "\",\"ending\":" << (st.ending ? "true" : "false") << ",\"clapping\":" << (st.clapping ? "true" : "false")
       << ",\"clap_now\":" << (st.clap_now ? "true" : "false") << ",\"pause\":" << st.pause << ",\"style\":\"" << esc(cfg_.style) << "\",\"style_name\":\"" << esc(st.style)
       << "\",\"kit\":\"" << esc(cfg_.kit) << "\",\"kit_name\":\"" << esc(st.kit) << "\",\"loop\":\"" << esc(st.loop) << "\",\"pedal\":\""
-      << esc(st.pedal_state) << "\",\"bars\":" << bars_for(track) << ",\"bars_a\":" << cfg_.loop_bars << ",\"bars_b\":" << bars_for(1) << ",\"track\":\"" << (track ? "B" : "A") << "\",\"click\":"
+      << esc(st.pedal_state) << "\",\"bars\":" << bars_for(track) << ",\"bars_a\":" << cfg_.loop_bars << ",\"bars_b\":" << bars_for(1) << ",\"record_ab\":" << (cfg_.record_ab ? "true" : "false") << ",\"track\":\"" << (track ? "B" : "A") << "\",\"click\":"
       << (cfg_.click ? "true" : "false") << ",\"volume\":" << cfg_.volume << ",\"song\":" << cfg_.song << ",\"song_id\":\"" << esc(current_song)
       << "\",\"setlist\":\"" << esc(cfg_.setlist) << "\",\"problem\":\"" << esc(st.problem) << "\",\"grid\":" << (st.grid ? "true" : "false")
       << ",\"preview\":" << (preview ? "true" : "false") << ",\"swing\":" << cfg_.swing << ",\"pocket\":" << cfg_.pocket_ms

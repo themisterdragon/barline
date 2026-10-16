@@ -29,6 +29,7 @@ struct Config {
     double bpm = 100;
     int loop_bars = 4;
     int loop_bars_b = 0;        // track B's loops (0 = the same as A): Song mode lets them differ
+    bool record_ab = false;     // the Record button on new loops: A, then B straight on (then A plays)
     int count_in = 1;
     double volume = 0.8, click_volume = 0.6, humanize = 0.25, swing = -1;
     bool click = false, click_always = false, send_clock = true, midi_start = false;

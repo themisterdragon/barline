@@ -1,5 +1,28 @@
 BARLINE CHANGES
 
+NEW IN 0.7.1
+  - Fixed: tapping A or B on the iPad could start a recording on the pedal that never stopped.
+    When Barline didn't know whether a track held a loop (just after it starts, or after a song
+    change), a tap sent the pedal Play, and on an empty track the pedal records instead. Then
+    Record meant "layer on", which opened a layer that never closed. Now a tap only switches to a
+    track Barline knows has a loop. A track it isn't sure about shows "Empty?": Record starts a
+    new loop there, and two quick taps play a loop already on the pedal.
+  - Fixed: tapping a track while a loop records (its own track, or A while Record A -> B was
+    recording B) stopped or restarted the recording and left a layer recording. Taps now wait
+    until the loop closes (Record still closes it early).
+  - Fixed: Stop Loops while recording: the loop came back a moment later (or, during Record
+    A -> B, B recorded anyway). Now the recording stops on the bar and keeps what was recorded.
+  - Fixed: Clear on a track that a switch was waiting for: the waiting Play reached the empty
+    track and started recording. Clear now drops anything still on its way to that track.
+  - Fixed: Record on a full track that isn't the one playing (Song mode) switched to it, then
+    started a layer that never closed. Now Record switches to it first; press again to layer.
+  - Fixed: the tap decisions use what the engine knows right then (a quick double tap could act
+    on a picture of a moment before).
+  - iPad: "Record new loops: One loop | A -> B straight through" above the Record button. The big
+    Record button (and the dock's) does whichever is picked and always says what it will do,
+    including "Close the loop on the next bar" while recording. Saved (record_ab in the settings).
+    The f key still records A -> B on its own.
+
 NEW IN 0.7.0
   - Looks for the laptop screen: press y (or click "look") and move through them; each one shows
     right away, Enter keeps it, Esc goes back. Seven themes:

@@ -89,6 +89,7 @@ Config load() {
         else if (k == "click_always") c.click_always = v == "on";
         else if (k == "send_clock") c.send_clock = v == "on";
         else if (k == "midi_start") c.midi_start = v == "on";
+        else if (k == "record_ab") c.record_ab = v == "on";
         else if (k == "clock_div") c.clock_div = std::max(0, std::min(4, (int)d));
         else if (k == "midi_channel") c.midi_channel = (int)d;
         else if (k == "lead_ms") c.lead_ms = d;
@@ -123,7 +124,7 @@ bool save(const Config &c) {
     o << "# Barline settings (changes here take effect the next time it starts)\n";
     o << "out_device = " << c.out_device << "\nclick_device = " << c.click_device << "\nmidi_device = " << c.midi_device << "\n";
     o << "period = " << c.period << "\nstyle = " << c.style << "\nkit = " << c.kit << "\nbpm = " << c.bpm << "\n";
-    o << "loop_bars = " << c.loop_bars << "\nloop_bars_b = " << c.loop_bars_b << "\ncount_in = " << c.count_in << "\nvolume = " << c.volume << "\nclick_volume = " << c.click_volume
+    o << "loop_bars = " << c.loop_bars << "\nloop_bars_b = " << c.loop_bars_b << "\nrecord_ab = " << onoff(c.record_ab) << "\ncount_in = " << c.count_in << "\nvolume = " << c.volume << "\nclick_volume = " << c.click_volume
       << "\n";
     o << "humanize = " << c.humanize << "\nswing = " << c.swing << "\nclick = " << onoff(c.click) << "\nclick_always = " << onoff(c.click_always)
       << "\n";

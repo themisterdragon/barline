@@ -259,8 +259,14 @@ nav button { font-size: 13px; padding: 6px 0; }
         <button class="tile tb" onclick="pickTrack('B')" id="trackb" aria-label="Track B"><span class="letter">B</span><span class="role">chorus</span><span class="tstate" id="tsb"></span></button>
       </div>
       <p class="trackhint" id="tracknote"></p>
+      <div id="recmodewrap" style="margin-bottom:12px">
+        <label id="recmodelabel">Record new loops</label>
+        <div class="seg" id="recmode" role="group" aria-labelledby="recmodelabel">
+          <button data-m="one" onclick="act('record_mode', 'one')">One loop</button>
+          <button data-m="ab" onclick="act('record_mode', 'ab')">A → B straight through</button>
+        </div>
+      </div>
       <button class="rec recbig" onclick="act('smart')" id="recbtn">Record</button>
-      <button class="rec" onclick="act('record_ab')" id="recabbtn" style="width:100%;margin-bottom:12px">● Record A → B</button>
       <div class="row" style="margin-bottom:12px">
         <button onclick="act('undo')">Undo</button>
         <button class="hold" data-hold="clear" data-ms="700">Clear<span class="hint">hold</span></button>
@@ -575,7 +581,8 @@ function act(action, arg) {
 // a track tap shows "next bar" at once, before the laptop answers, so a tap never feels lost
 let pending = "", pendingAt = 0;
 function pickTrack(t) {
-  if (S && (S.pedal_mode === "song" || S.pedal_mode === "off") && S.playing_track !== t && !(t === "A" ? S.empty_a : S.empty_b)) {
+  // only a track known to hold a loop switches (an unsure one needs a second tap: see the laptop's note)
+  if (S && (S.pedal_mode === "song" || S.pedal_mode === "off") && S.playing_track !== t && (t === "A" ? S.has_a : S.has_b) && !S.loop) {
     pending = t; pendingAt = Date.now();
     for (const id of t === "A" ? ["tracka", "docka"] : ["trackb", "dockb"]) $(id).classList.add("next");
   }
@@ -678,12 +685,17 @@ async function poll() {
   // the loop tracks
   const full = S.track === "A" ? S.has_a : S.has_b;
   const bars = S.bars + (S.bars === 1 ? " bar" : " bars");
-  $("recbtn").textContent = (full ? "● Layer on " : "● Record ") + S.track + "  ·  " + bars;
-  $("dockrec").textContent = (full ? "Layer " : "Rec ") + S.track;
-  // one press, both loops: A, then B straight on, then A plays (only for new loops; not in Single mode)
-  const abOk = S.pedal_mode !== "single" && !S.has_a && !S.has_b && !S.loop;
-  $("recabbtn").classList.toggle("hide", !abOk);
-  $("recabbtn").textContent = `● Record A (${S.bars_a}) → B (${S.bars_b})` + (songish ? ", then A plays" : "");
+  // Record does what the laptop will do with it: A → B (when picked, for new loops), a new loop, a layer
+  // on the loop playing, or (Song mode) switch to a full track first
+  const abOk = S.pedal_mode !== "single" && !S.has_a && !S.has_b;
+  const ab = abOk && S.record_ab && !S.loop;
+  const recNow = S.loop && /, bar \d/.test(S.loop) && !/ next$/.test(S.loop);   // recording now (not counting down, not A of A → B)
+  const offTrack = songish && full && !S.loop && (S.next_track || S.playing_track) !== S.track;
+  $("recbtn").textContent = recNow ? "● Close the loop on the next bar" : S.loop ? "● " + S.loop : ab ? `● Record A (${S.bars_a}) → B (${S.bars_b})` + (songish ? ", then A plays" : "") :
+    offTrack ? "▶ Play " + S.track + " (then Record layers on it)" : (full ? "● Layer on " : "● Record ") + S.track + "  ·  " + bars;
+  $("dockrec").textContent = recNow ? "Close" : S.loop ? "Rec…" : ab ? "Rec A→B" : offTrack ? "Play " + S.track : (full ? "Layer " : "Rec ") + S.track;
+  $("recmodewrap").classList.toggle("hide", !abOk || !!S.loop);
+  [...$("recmode").children].forEach(b => { const on = b.dataset.m === (S.record_ab ? "ab" : "one"); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
   $("barslabel").textContent = "Loop length for track " + S.track + (songish ? "  (A " + S.bars_a + " · B " + S.bars_b + ")" : "");
   for (const t of ["A", "B"]) {
     const tile = $(t === "A" ? "tracka" : "trackb"), dk = $(t === "A" ? "docka" : "dockb");
@@ -691,7 +703,8 @@ async function poll() {
     const playing = S.playing_track === t, next = S.next_track === t || (pending === t && Date.now() - pendingAt < 1500);
     if (S.next_track || S.playing_track === pending) pending = "";
     const rec = S.loop && new RegExp("^(Recording|Overdub(bing)?) " + t + "\\b").test(S.loop);
-    const state = rec ? "● " + (/^Overdub/.test(S.loop) ? "LAYERING" : "RECORDING") : next ? "NEXT BAR" : playing ? "▶ PLAYING" : has ? "Ready" : empty ? "Empty" : songish ? "Tap to play" : "";
+    const upNext = S.loop && new RegExp(" · " + t + " next$").test(S.loop);   // Record A → B: B records when A closes
+    const state = rec ? "● " + (/^Overdub/.test(S.loop) ? "LAYERING" : "RECORDING") : upNext ? "● RECORDS NEXT" : next ? "NEXT BAR" : playing ? "▶ PLAYING" : has ? "Ready" : empty ? "Empty" : "Empty?";
     $(t === "A" ? "tsa" : "tsb").textContent = state;
     tile.classList.toggle("playing", playing && !next && !rec);
     tile.classList.toggle("recording", !!rec);
@@ -705,7 +718,7 @@ async function poll() {
     dk.classList.toggle("next", next);
     dk.disabled = tile.disabled;
   }
-  $("tracknote").textContent = S.pedal_mode === "single" ? "Single mode: one track." : songish ? "Tap a track to switch to it on the next bar. Next Part switches too." : "Tap a track to record on it.";
+  $("tracknote").textContent = S.pedal_mode === "single" ? "Single mode: one track." : songish ? "Tap a track with a loop to switch to it on the next bar (Next Part switches too). Empty? = Barline doesn't know: Record starts a new loop there." : "Tap a track to record on it.";
   [...$("pmodes").children].forEach(b => b.classList.toggle("on", b.dataset.m === (S.pedal_mode || "off")));
   [...$("netpick").children].forEach(b => b.classList.toggle("on", b.dataset.n === (S.network || "auto")));
   $("netnow").textContent = S.network_ip ? `${S.network_name}, ${S.network_ip}` : S.network_name || "";

@@ -100,22 +100,27 @@ SONG MODE: A FOR THE VERSE, B FOR THE CHORUS
   Song mode keeps two loops of any length, and only one plays at a time. Record the verse loop on
   A and the chorus loop on B. Then:
   Tap A or B          that loop comes in on the next bar line (the tile says NEXT BAR until it
-                      does). An empty track isn't played: the tap gets it ready to record.
+                      does). Only a track Barline knows holds a loop is played. An empty track
+                      ("Empty", or "Empty?" when Barline can't know) is only picked: Record
+                      starts its loop. A loop left on the pedal from before? Tap its track twice.
+                      While a loop records, taps wait (Record closes it early).
   Next Part           the drums fill, and the other loop comes in with the new part.
   End                 the drums play their ending and the loops stop on its last hit (the final
                       crash), not a bar later. Multi and Sync stop both tracks.
   Stop Now (hold)     the drums stop at once; the loop stops on the next bar line (so it comes
                       back in time).
-  Record A -> B (f, or the button under Record): one press records the whole song's loops with
-                      no waiting in between. A records for its length from the next bar line, B
-                      starts the instant A closes, and when B closes A plays. Set each track's
-                      length first ([ ] with A or B picked). For new loops: clear A and B first.
+  Record A -> B (iPad: "Record new loops: A -> B straight through", then Record; laptop: f):
+                      one press records the whole song's loops with no waiting in between. A
+                      records for its length from the next bar line, B starts the instant A
+                      closes, and when B closes A plays. Set each track's length first ([ ] with
+                      A or B picked). For new loops: once A or B holds a loop, Record layers.
+  Record on a full track that isn't playing: it comes in first; press Record again to layer.
   Changed your mind before the bar line? Tap the loop that's playing: the switch is called off.
   Next Part only switches to a track Barline knows has a loop (recorded or played this session).
   "Not sure" works the same way as Song.
   Keep loops in time: stop them with Barline (Stop Loops stops on the bar line). The pedal
   picks a stopped loop up where it stopped, so a foot stop mid-bar brings it back off the grid.
-  Right after Barline starts it can't know what the pedal is playing (the pedal doesn't say),
+  Right after Barline starts it can't know what the pedal holds or plays (the pedal doesn't say),
   so the first switch stops on one bar and plays on the next (a Play on a loop that's already
   playing would overdub it). From then on, switches are clean.
   Why Barline never just "selects" a track on the pedal: in Song mode, selecting stops the
