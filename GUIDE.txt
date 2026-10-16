@@ -134,7 +134,7 @@ SONGS, SET LISTS, LYRICS
 
 FOOTSWITCH / KEYBOARD (laptop)
   space drums   n next part   e ending   z/x pause half/whole bar   d clap along
-  t tap   +/- tempo   r record   o overdub   f record A then B
+  t tap   +/- tempo   r record   o overdub   f record A then B   y the look (themes, beat lights)
   Page Down: record, then overdub (one-button)   Page Up: undo   left/right: previous/next song
   u undo   c clear   s stop loops   b track A/B   [ ] loop length   h hear on laptop   ? help
 On the iPad, a Bluetooth footswitch can work like the laptop's keys, scroll the lyrics, or do

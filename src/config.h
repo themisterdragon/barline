@@ -47,6 +47,8 @@ struct Config {
     int web_port = 8580;
     // the network the page is shown on: auto (a router plugged into a USB port first, then a cable,
     // then the network the computer goes out on), usb, wired, wifi, or a network's name ("enx00e04c...")
+    std::string tui_theme = "stage";      // the laptop screen's look (Stage, Classic, Neon Grid, ...)
+    std::string tui_lights = "theme";     // its beat lights: the theme's own, or blocks, dots, leds, numbers, pips, sweep
     std::string network = "auto";
     bool network_only = false;            // only devices on that network get the page (not the venue's Wi-Fi)
     std::string web_code;                 // the pairing code (made on first run)

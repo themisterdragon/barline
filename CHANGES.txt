@@ -1,5 +1,22 @@
 BARLINE CHANGES
 
+NEW IN 0.7.0
+  - Looks for the laptop screen: press y (or click "look") and move through them; each one shows
+    right away, Enter keeps it, Esc goes back. Seven themes:
+      Stage (the 0.6 look), Classic (the first one: plain text, amber and cyan, dot lights),
+      Neon Grid (retro-futuristic pink and cyan, framed panels), Green Screen and Amber (the
+      old monochrome monitors), Daylight (light and high-contrast, for bright rooms and outdoor
+      stages), and Midnight Ice (cool blues).
+  - Beat lights, picked on their own (or the theme's own): Blocks, Dots, LED meter (segments that
+    fill through each beat), Big numbers (the beat you're on, readable from across the stage),
+    Diamonds, and Sweep (one bar across the measure).
+  - Saved in the settings file (tui_theme, tui_lights). The iPad page and the window are unchanged.
+  - Fixed (Mac): drums on the laptop crackled and dropped out. The Mac's sound buffer was far
+    smaller than what macOS asks for at once, and with no pedal plugged in a timer and the
+    speakers' own clock drifted apart. The laptop's sound now sets the pace when it's the only
+    output (every system), and the Mac's buffer fits its device (about 25 ms of delay).
+  - Mac and Windows: "this computer's sound" is the output picked in the system's Sound settings.
+
 NEW IN 0.6.0
   - End: the loops stop with the ending's last hit (the final crash), not a bar after it. In
     Multi and Sync both tracks stop.

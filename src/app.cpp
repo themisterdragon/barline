@@ -454,6 +454,10 @@ bool Control::act(const std::string &a, const std::string &arg) {
             net::Net n = network();
             note(n.ip.empty() ? "iPad page network: " + arg + " (not there yet)" : "iPad page on " + n.label() + ": " + address());
         }
+    } else if (a == "look") {   // the laptop screen's look: "theme:neon" or "lights:leds"
+        if (arg.rfind("theme:", 0) == 0) cfg_.tui_theme = arg.substr(6);
+        else if (arg.rfind("lights:", 0) == 0) cfg_.tui_lights = arg.substr(7);
+        config::save(cfg_);
     } else if (a == "network_only") {
         cfg_.network_only = arg == "on" ? true : arg == "off" ? false : !cfg_.network_only;
         config::save(cfg_);
@@ -697,9 +701,77 @@ std::string Control::json() {
 
 namespace {
 
-// the look: near-black stage, soft panels, one warm accent, A blue and B violet (as on the iPad)
-const int BG = 234, PANEL = 235, RAISED = 237, LINE = 239, FG = 252, DIM = 245, FAINT = 241, ACCENT = 214, GOOD = 114, BAD = 203,
-          HEAD = 117, A_COL = 39, B_COL = 141, REC = 197, SEL = 61;
+// ---- the looks: a theme (its colors, panels, keycaps, wordmark) and a style of beat lights, picked
+// separately (y on the main screen). Colors are xterm-256 numbers; the Linux console gets the nearest 16.
+enum Cards { STRIPE, FLAT, FRAME };
+struct Theme {
+    const char *id, *name, *about;
+    int bg, panel, raised, line, fg, dim, faint, hi, accent, on_acc, head, good, bad, a_col, b_col, rec, sel, popup;
+    int beat1, beat, beat1_fade, beat_fade, count, count_fade, past, sweep;
+    int chip_bg, chip_fg, warn_bg, prob_bg, prob_fg;
+    std::vector<int> mark;   // the wordmark, letter by letter
+    Cards cards;
+    bool big_tempo, bracket_keys;
+    const char *lights;      // the beat lights it comes with
+};
+const std::vector<Theme> &themes() {
+    static const std::vector<Theme> T = {
+        {"stage", "Stage", "near-black stage, soft panels, a warm accent; A blue, B violet",
+         234, 235, 237, 239, 252, 245, 241, 231, 214, 16, 117, 114, 203, 39, 141, 197, 61, 236,
+         205, 87, 168, 80, 214, 172, 60, 117, 239, 231, 124, 52, 217, {214, 209, 204, 205, 170, 135, 99}, STRIPE, true, false, "blocks"},
+        {"classic", "Classic", "the first look: plain text on black, amber and cyan, dot lights",
+         234, 234, 236, 238, 252, 244, 242, 231, 214, 16, 81, 114, 203, 75, 141, 203, 24, 236,
+         114, 114, 114, 114, 214, 214, 242, 81, 234, 214, 160, 52, 217, {214, 214, 214, 214, 214, 214, 214}, FLAT, false, true, "dots"},
+        {"neon", "Neon Grid", "retro-futuristic: pink and cyan on midnight, framed panels, an LED meter",
+         16, 17, 18, 54, 189, 147, 97, 231, 213, 16, 51, 49, 197, 51, 213, 197, 55, 17,
+         213, 51, 162, 37, 220, 172, 54, 51, 54, 231, 125, 53, 218, {201, 207, 213, 177, 141, 105, 51}, FRAME, true, false, "leds"},
+        {"phosphor", "Green Screen", "a green phosphor terminal: every color is green",
+         16, 16, 22, 22, 83, 35, 28, 157, 118, 16, 46, 118, 157, 46, 120, 118, 22, 16,
+         118, 46, 70, 34, 157, 71, 22, 46, 22, 157, 22, 22, 157, {46, 46, 46, 46, 46, 46, 46}, FRAME, true, true, "pips"},
+        {"amber", "Amber", "an amber monochrome monitor, warm and easy on the eyes",
+         16, 16, 52, 94, 214, 172, 130, 230, 220, 16, 214, 220, 230, 214, 222, 220, 94, 16,
+         220, 214, 178, 172, 230, 179, 94, 214, 94, 230, 94, 52, 230, {214, 214, 214, 214, 214, 214, 214}, FRAME, true, true, "numbers"},
+        {"daylight", "Daylight", "light and high-contrast, for bright rooms and outdoor stages",
+         255, 254, 252, 250, 235, 240, 244, 232, 166, 231, 25, 28, 160, 25, 91, 160, 153, 255,
+         166, 31, 173, 74, 166, 173, 250, 25, 238, 255, 160, 224, 88, {166, 167, 168, 133, 97, 61, 25}, STRIPE, true, false, "blocks"},
+        {"ice", "Midnight Ice", "cool blues and silver, quiet on a dark stage",
+         233, 234, 236, 238, 253, 249, 243, 231, 45, 16, 153, 115, 210, 45, 147, 204, 24, 235,
+         123, 81, 74, 67, 45, 38, 24, 153, 238, 231, 89, 52, 217, {153, 117, 81, 45, 39, 33, 27}, STRIPE, true, false, "sweep"},
+    };
+    return T;
+}
+// the beat lights: (id, name, what they look like)
+const std::vector<std::vector<std::string>> &light_styles() {
+    static const std::vector<std::vector<std::string>> L = {
+        {"blocks", "Blocks", "a big block for each beat, the bar sweeping under them"},
+        {"dots", "Dots", "a dot for each beat, like the first Barline"},
+        {"leds", "LED meter", "segments that fill through each beat, like a VU meter"},
+        {"numbers", "Big numbers", "the beat you're on, big enough to read from across the stage"},
+        {"pips", "Diamonds", "a diamond for each beat"},
+        {"sweep", "Sweep", "one bar that sweeps across the measure, beats marked under it"}};
+    return L;
+}
+
+// the colors in use (set from the theme)
+int BG, PANEL, RAISED, LINE, FG, DIM, FAINT, HI, ACCENT, ON_ACC, HEAD, GOOD, BAD, A_COL, B_COL, REC, SEL, POPUP;
+int BEAT1, BEAT, BEAT1_FADE, BEAT_FADE, COUNT, COUNT_FADE, PAST, SWEEP, CHIP_BG, CHIP_FG, WARN_BG, PROB_BG, PROB_FG;
+const Theme *g_theme = nullptr;
+std::string g_lights = "blocks";
+
+void apply_look(const std::string &theme, const std::string &lights) {
+    const Theme *t = &themes()[0];
+    for (const auto &x : themes())
+        if (theme == x.id) t = &x;
+    g_theme = t;
+    BG = t->bg, PANEL = t->panel, RAISED = t->raised, LINE = t->line, FG = t->fg, DIM = t->dim, FAINT = t->faint, HI = t->hi;
+    ACCENT = t->accent, ON_ACC = t->on_acc, HEAD = t->head, GOOD = t->good, BAD = t->bad, A_COL = t->a_col, B_COL = t->b_col;
+    REC = t->rec, SEL = t->sel, POPUP = t->popup, BEAT1 = t->beat1, BEAT = t->beat, BEAT1_FADE = t->beat1_fade, BEAT_FADE = t->beat_fade;
+    COUNT = t->count, COUNT_FADE = t->count_fade, PAST = t->past, SWEEP = t->sweep, CHIP_BG = t->chip_bg, CHIP_FG = t->chip_fg;
+    WARN_BG = t->warn_bg, PROB_BG = t->prob_bg, PROB_FG = t->prob_fg;
+    g_lights = t->lights;
+    for (const auto &l : light_styles())
+        if (lights == l[0]) g_lights = lights;
+}
 
 // what a click on the screen does (a keycap, a loop tile): rebuilt with every frame
 struct Hot {
@@ -737,8 +809,8 @@ int caps(int x, int y, const std::string &keys, bool draw = true) {
     std::istringstream in(keys);
     std::string one;
     while (in >> one) {
-        std::string c = " " + cap(one) + " ";
-        if (draw) term::put(x + w, y, c, 231, LINE, term::A_BOLD);
+        std::string c = g_theme->bracket_keys ? "[" + cap(one) + "]" : " " + cap(one) + " ";
+        if (draw) term::put(x + w, y, c, g_theme->bracket_keys ? ACCENT : CHIP_FG, g_theme->bracket_keys ? -2 : CHIP_BG, term::A_BOLD);
         w += text_w(c) + 1;
     }
     return std::max(0, w - 1);
@@ -758,34 +830,51 @@ int chip(int x, int y, const std::string &key, const std::string &label, int max
 // a panel: a tinted card with a colored edge and a small title
 void card(int x, int y, int w, int h, const std::string &title, int accent) {
     term::fill(x, y, w, h, PANEL);
-    for (int i = 0; i < h; i++) term::put(x, y + i, term::ascii() ? "|" : "\xE2\x96\x8E", accent, PANEL);
+    bool a = term::ascii();
+    if (g_theme->cards == STRIPE)
+        for (int i = 0; i < h; i++) term::put(x, y + i, a ? "|" : "\xE2\x96\x8E", accent, PANEL);
+    else if (g_theme->cards == FRAME) {   // a thin frame in the theme's line color, the title set into it
+        for (int i = 1; i < w - 1; i++) {
+            term::put(x + i, y, a ? "-" : "\xE2\x94\x80", LINE, PANEL);
+            term::put(x + i, y + h - 1, a ? "-" : "\xE2\x94\x80", LINE, PANEL);
+        }
+        for (int i = 1; i < h - 1; i++) {
+            term::put(x, y + i, a ? "|" : "\xE2\x94\x82", LINE, PANEL);
+            term::put(x + w - 1, y + i, a ? "|" : "\xE2\x94\x82", LINE, PANEL);
+        }
+        term::put(x, y, a ? "+" : "\xE2\x94\x8C", LINE, PANEL);
+        term::put(x + w - 1, y, a ? "+" : "\xE2\x94\x90", LINE, PANEL);
+        term::put(x, y + h - 1, a ? "+" : "\xE2\x94\x94", LINE, PANEL);
+        term::put(x + w - 1, y + h - 1, a ? "+" : "\xE2\x94\x98", LINE, PANEL);
+        if (!title.empty()) term::put(x + 2, y, " " + upper(title) + " ", accent, PANEL, term::A_BOLD);
+        return;
+    }
     if (!title.empty()) term::put(x + 2, y, upper(title), accent, PANEL, term::A_BOLD);
 }
 
 // a pop-up (the pickers, the help): a raised card with a thin rounded outline
 void box(int x, int y, int w, int h, const std::string &title) {
-    term::fill(x, y, w, h, 236);
+    term::fill(x, y, w, h, POPUP);
     bool a = term::ascii();
     for (int i = 1; i < w - 1; i++) {
-        term::put(x + i, y, a ? "-" : "\xE2\x94\x80", LINE, 236);
-        term::put(x + i, y + h - 1, a ? "-" : "\xE2\x94\x80", LINE, 236);
+        term::put(x + i, y, a ? "-" : "\xE2\x94\x80", LINE, POPUP);
+        term::put(x + i, y + h - 1, a ? "-" : "\xE2\x94\x80", LINE, POPUP);
     }
     for (int i = 1; i < h - 1; i++) {
-        term::put(x, y + i, a ? "|" : "\xE2\x94\x82", LINE, 236);
-        term::put(x + w - 1, y + i, a ? "|" : "\xE2\x94\x82", LINE, 236);
+        term::put(x, y + i, a ? "|" : "\xE2\x94\x82", LINE, POPUP);
+        term::put(x + w - 1, y + i, a ? "|" : "\xE2\x94\x82", LINE, POPUP);
     }
-    term::put(x, y, a ? "+" : "\xE2\x95\xAD", LINE, 236);
-    term::put(x + w - 1, y, a ? "+" : "\xE2\x95\xAE", LINE, 236);
-    term::put(x, y + h - 1, a ? "+" : "\xE2\x95\xB0", LINE, 236);
-    term::put(x + w - 1, y + h - 1, a ? "+" : "\xE2\x95\xAF", LINE, 236);
-    term::put(x + 2, y, " " + upper(title) + " ", HEAD, 236, term::A_BOLD);
+    term::put(x, y, a ? "+" : "\xE2\x95\xAD", LINE, POPUP);
+    term::put(x + w - 1, y, a ? "+" : "\xE2\x95\xAE", LINE, POPUP);
+    term::put(x, y + h - 1, a ? "+" : "\xE2\x95\xB0", LINE, POPUP);
+    term::put(x + w - 1, y + h - 1, a ? "+" : "\xE2\x95\xAF", LINE, POPUP);
+    term::put(x + 2, y, " " + upper(title) + " ", HEAD, POPUP, term::A_BOLD);
 }
 
 // the wordmark, in a sunset fade
 void wordmark(int x, int y) {
-    static const int C[] = {214, 209, 204, 205, 170, 135, 99};
     const char *w = "BARLINE";
-    for (int i = 0; i < 7; i++) term::put(x + i, y, std::string(1, w[i]), C[i], BG, term::A_BOLD);
+    for (int i = 0; i < 7; i++) term::put(x + i, y, std::string(1, w[i]), g_theme->mark[(size_t)i % g_theme->mark.size()], BG, term::A_BOLD);
 }
 
 // big digits for the tempo: 3x5 pixels, each pixel two cells wide, drawn with half blocks (3 rows tall)
@@ -807,6 +896,102 @@ void big_number(int x, int y, int n, int fg) {
             }
         x += 8;
     }
+}
+
+// the beat lights, in the style picked. Inside a card from row y+1 to y+ch-2.
+void beat_lights(const engine::Status &s, int gx, int y, int gw, int ch, bool roomy) {
+    bool a = term::ascii();
+    int beats = std::max(1, s.beats), inner = gw - 6, x0 = gx + 3;
+    auto lit = [&](int q) {   // the color of beat q (1..beats)
+        bool now = s.grid && q == s.beat;
+        if (!s.grid) return RAISED;
+        if (now) {
+            bool fade = s.phase > 0.6;   // the lit beat fades through its length
+            return s.counting ? (fade ? COUNT_FADE : COUNT) : q == 1 ? (fade ? BEAT1_FADE : BEAT1) : (fade ? BEAT_FADE : BEAT);
+        }
+        return q < s.beat ? PAST : RAISED;
+    };
+    auto label = [&](int x, int row, int q) {
+        bool now = s.grid && q == s.beat;
+        term::put(x, row, std::to_string(q), now ? HI : FAINT, PANEL, now ? term::A_BOLD : 0);
+    };
+    auto rep = [](const char *g, int n) {
+        std::string o;
+        for (int i = 0; i < n; i++) o += g;
+        return o;
+    };
+    // the bar sweeping across the measure, in eighths of a cell
+    auto sweep = [&](int x, int row, int w) {
+        double done = s.grid ? std::min(1.0, ((double)std::max(0, s.beat - 1) + s.phase) / beats) : 0;
+        int eighths = (int)(done * w * 8);
+        for (int c = 0; c < w; c++) {
+            int e = std::max(0, std::min(8, eighths - c * 8));
+            std::string g = e >= 8 ? term::g_block() : e > 0 ? term::g_partial(e) : (a ? "." : "\xE2\x96\x81");
+            term::put(x + c, row, g, e ? SWEEP : RAISED, PANEL);
+        }
+    };
+    int top = y + 1 + (roomy ? 1 : 0), bottom = y + ch - 2;
+    std::string style = g_lights;
+    if (style == "numbers") {
+        if (roomy) {
+            int q = s.grid ? s.beat : 1;
+            big_number(x0, y + 1, q, s.grid ? lit(q) : FAINT);
+            int tx = x0 + 9;
+            term::put(tx, y + 2, "of " + std::to_string(beats), DIM, PANEL, term::A_BOLD);
+            for (int k = 1; k <= beats && tx + 2 * k < gx + gw - 2; k++) term::put(tx + 2 * (k - 1), y + 4, a ? (k == s.beat && s.grid ? "*" : "o") : (k == s.beat && s.grid ? "\xE2\x97\x8F" : "\xE2\x97\x8B"), lit(k), PANEL);
+            sweep(tx + 2 * beats + 2, y + 4, std::max(4, gx + gw - 3 - (tx + 2 * beats + 2)));
+        } else {
+            term::put(x0, y + 1, s.grid ? "BEAT " + std::to_string(s.beat) + " / " + std::to_string(beats) : "BEAT - / " + std::to_string(beats), s.grid ? lit(s.beat) : FAINT, PANEL, term::A_BOLD);
+            sweep(x0, y + 2, std::min(inner, 24));
+        }
+        return;
+    }
+    if (style == "sweep") {
+        int w = std::max(8, inner);
+        for (int r = 0; r < (roomy ? 2 : 1); r++) sweep(x0, top + r, w);
+        if (roomy)
+            for (int q = 1; q <= beats; q++) {
+                int bx = x0 + (int)((double)(q - 1) * w / beats);
+                term::put(bx, y + 4, a ? "|" : "\xE2\x94\x82", lit(q), PANEL);
+                label(bx + 1, y + 4, q);
+            }
+        return;
+    }
+    if (style == "dots" || style == "pips") {
+        bool dots = style == "dots";
+        int step = std::max(3, std::min(8, inner / beats));
+        for (int q = 1; q <= beats; q++) {
+            int bx = x0 + (q - 1) * step;
+            bool on = s.grid && q <= s.beat;
+            std::string g = a ? (on ? "*" : "o") : dots ? (on ? "\xE2\x97\x8F" : "\xE2\x97\x8B") : (on ? "\xE2\x97\x86" : "\xE2\x97\x87");
+            term::put(bx, top, g, lit(q), PANEL, term::A_BOLD);
+            if (roomy) label(bx, y + 4, q);
+        }
+        if (roomy || ch > 3) sweep(x0, roomy ? bottom : y + 2, std::max(4, beats * step - (step - 1)));
+        return;
+    }
+    int bw = std::max(1, std::min(14, inner / beats - 1));
+    if (style == "leds") {   // segments filling through each beat
+        int segs = std::max(2, bw / 2);
+        for (int q = 1; q <= beats; q++) {
+            int bx = x0 + (q - 1) * (bw + 1);
+            int on = !s.grid ? 0 : q < s.beat ? segs : q == s.beat ? std::max(1, (int)std::ceil(s.phase * segs)) : 0;
+            for (int g = 0; g < segs; g++) {
+                int c = g < on ? (q == s.beat ? lit(q) : PAST) : RAISED;
+                for (int r = 0; r < (roomy ? 2 : 1); r++) term::put(bx + g * 2, top + r, a ? "#" : "\xE2\x96\x8C", c, PANEL);
+            }
+            if (roomy) label(bx, y + 4, q);
+        }
+        return;
+    }
+    // blocks
+    for (int q = 1; q <= beats; q++) {
+        int bx = x0 + (q - 1) * (bw + 1);
+        bool now = s.grid && q == s.beat;
+        for (int r = 0; r < (roomy ? 2 : 1); r++) term::put(bx, top + r, a ? std::string((size_t)bw, now ? '#' : '=') : rep("\xE2\x96\x88", bw), lit(q), PANEL);
+        if (roomy) label(bx, y + 4, q);
+    }
+    if (roomy || ch > 3) sweep(x0, roomy ? bottom : y + 2, beats * (bw + 1) - 1);
 }
 
 std::string key_name(const term::Event &ev) {
@@ -840,6 +1025,21 @@ bool is_fav(const config::Config &c, const std::string &id) { return std::find(c
 std::string beat_label(const config::Config &c, const pattern::Style *s) {
     return std::string(is_fav(c, s->id) ? "\xE2\x98\x85 " : "  ") + s->family + ": " + s->name + "  " + s->meter + ", " + std::to_string(s->bpm) +
            " BPM";
+}
+
+// the Look picker: every theme, then every style of beat lights (moving through it shows each one)
+Picker *look_picker(const config::Config &cfg) {
+    Picker *p = new Picker{"Look  (Enter keeps it, Esc goes back)", {}, 0, "look", "look"};
+    const char *tick = term::ascii() ? "* " : "\xE2\x9C\x93 ";
+    for (const auto &t : themes()) {
+        bool on = cfg.tui_theme == t.id;
+        if (on) p->sel = (int)p->items.size();
+        p->items.push_back({std::string("theme:") + t.id, std::string(on ? tick : "  ") + "Theme   " + t.name + "  \xC2\xB7  " + t.about});
+    }
+    p->items.push_back({"lights:theme", std::string(cfg.tui_lights == "theme" ? tick : "  ") + "Lights  The theme's own"});
+    for (const auto &l : light_styles())
+        p->items.push_back({"lights:" + l[0], std::string(cfg.tui_lights == l[0] ? tick : "  ") + "Lights  " + l[1] + "  \xC2\xB7  " + l[2]});
+    return p;
 }
 
 Picker *beats_picker(const config::Config &cfg, bool favorites_only) {
@@ -1009,6 +1209,8 @@ int run(Control &ctl) {
     for (auto &c : locale) c = (char)std::tolower((unsigned char)c);
     if (locale.find("utf-8") == std::string::npos && locale.find("utf8") == std::string::npos) term::set_ascii(true);
     config::Config &cfg = ctl.cfg();
+    std::string try_theme, try_lights;   // the Look picker's preview (empty: what's saved)
+    apply_look(cfg.tui_theme, cfg.tui_lights);
     std::unique_ptr<Picker> pick;
     std::unique_ptr<Builder> build;
     std::unique_ptr<SongForm> form;
@@ -1076,7 +1278,8 @@ int run(Control &ctl) {
     };
     // what a key (or a click on its keycap) does on the main screen
     auto main_action = [&](const std::string &action) {
-        if (action == "kits") {
+        if (action == "look") pick.reset(look_picker(cfg));
+        else if (action == "kits") {
             pick.reset(new Picker{"Kits", {}, 0, "kit", "kits"});
             for (const auto &i : kit::list(paths::kits())) {
                 if (i.slug == cfg.kit) pick->sel = (int)pick->items.size();
@@ -1328,6 +1531,18 @@ int run(Control &ctl) {
                 std::string val = n ? pick->items[(size_t)pick->sel].first : "";
                 if (key == "up") pick->sel = (pick->sel + n - 1) % std::max(1, n);
                 else if (key == "down") pick->sel = (pick->sel + 1) % std::max(1, n);
+                else if (pick->kind == "look" && key == "enter" && n) {   // keep it (and stay, to pick the lights too)
+                    ctl.act("look", val);
+                    try_theme.clear();
+                    try_lights.clear();
+                    int sel = pick->sel;
+                    pick.reset(look_picker(cfg));
+                    pick->sel = sel;
+                } else if (pick->kind == "look" && (key == "esc" || key == "q")) {
+                    try_theme.clear();
+                    try_lights.clear();
+                    pick.reset();
+                }
                 else if (key == "enter" && n && form && (pick->action == "form_style" || pick->action == "form_kit")) {
                     if (pick->action == "form_style") form->s.style = val;
                     else form->s.kit = val;
@@ -1371,6 +1586,11 @@ int run(Control &ctl) {
                     } else
                         ctl.note("Only your own beats can be deleted.");
                 } else if (key == "esc" || key == "q") pick.reset();
+                if (pick && pick->kind == "look" && !pick->items.empty()) {
+                    const std::string &v = pick->items[(size_t)pick->sel].first;
+                    if (v.rfind("theme:", 0) == 0) try_theme = v.substr(6), try_lights.clear();
+                    else try_lights = v.substr(7), try_theme.clear();
+                }
             } else if (help) {
                 help = false;
             } else {
@@ -1382,6 +1602,7 @@ int run(Control &ctl) {
             }
         }
         // ---- draw
+        apply_look(try_theme.empty() ? cfg.tui_theme : try_theme, try_lights.empty() ? cfg.tui_lights : try_lights);
         int W = term::width(), H = term::height();
         g_hots.clear();
         term::clear(BG);
@@ -1405,7 +1626,7 @@ int run(Control &ctl) {
                 }
             }
             std::string sp = " LAPTOP SPEAKERS ON ";
-            if (ctl.preview && 11 + text_w(sp) < rx) term::put(11, 0, sp, 231, 124, term::A_BOLD);
+            if (ctl.preview && 11 + text_w(sp) < rx) term::put(11, 0, sp, HI, WARN_BG, term::A_BOLD);
         }
         engine::Status s = ctl.engine().status();
         auto draw_pick = [&] {
@@ -1417,30 +1638,30 @@ int run(Control &ctl) {
                 for (int i = 0; i < rows && top + i < (int)pick->items.size(); i++) {
                     bool on = top + i == pick->sel;
                     std::string t = pick->items[(size_t)(top + i)].second;
-                    term::fill(x0 + 1, y0 + 1 + i, w - 2, 1, on ? SEL : 236);
+                    term::fill(x0 + 1, y0 + 1 + i, w - 2, 1, on ? SEL : POPUP);
                     if (on) term::put(x0 + 1, y0 + 1 + i, term::ascii() ? ">" : "\xE2\x96\x8C", ACCENT, SEL);
-                    term::put(x0 + 3, y0 + 1 + i, t.substr(0, (size_t)w - 5), on ? 231 : FG, on ? SEL : 236, on ? term::A_BOLD : 0);
+                    term::put(x0 + 3, y0 + 1 + i, t.substr(0, (size_t)w - 5), on ? HI : FG, on ? SEL : POPUP, on ? term::A_BOLD : 0);
                 }
                 std::string hint = pick->kind == "beats" ? "enter pick  f favorite  e edit a copy  d delete yours  esc close"
                                  : pick->kind == "fav"   ? "enter pick  f unfavorite  e edit a copy  esc close"
                                  : pick->kind == "songs" ? "enter play it  e edit  n new song  esc close"
                                                          : "enter pick  esc close";
-                term::put(x0 + 2, y0 + h - 2, hint, DIM, 236);
+                term::put(x0 + 2, y0 + h - 2, hint, DIM, POPUP);
             }
         };
         if (form && !build) {
             // ---- the song editor
             SongForm &f = *form;
-            term::put(2, 2, f.s.id.empty() ? "NEW SONG" : "EDIT SONG", HEAD, 234, term::A_BOLD);
-            term::put(14, 2, f.s.name + (f.dirty ? "  (not saved)" : ""), FG, 234, term::A_BOLD);
+            term::put(2, 2, f.s.id.empty() ? "NEW SONG" : "EDIT SONG", HEAD, BG, term::A_BOLD);
+            term::put(14, 2, f.s.name + (f.dirty ? "  (not saved)" : ""), FG, BG, term::A_BOLD);
             int y0 = 4;
             for (int i = 0; i < F_COUNT_ && y0 + i < H - 5; i++) {
                 bool on = i == f.row;
                 int y = y0 + i;
-                term::fill(2, y, W - 4, 1, on ? SEL : 234);
-                term::put(3, y, field_label(i), on ? 231 : DIM, on ? SEL : 234, on ? term::A_BOLD : 0);
+                term::fill(2, y, W - 4, 1, on ? SEL : BG);
+                term::put(3, y, field_label(i), on ? HI : DIM, on ? SEL : BG, on ? term::A_BOLD : 0);
                 std::string v = on && f.typing ? f.buf + "_" : field_value(f.s, i);
-                term::put(18, y, v.substr(0, (size_t)std::max(0, W - 22)), on ? (f.typing ? ACCENT : 231) : FG, on ? SEL : 234, on ? term::A_BOLD : 0);
+                term::put(18, y, v.substr(0, (size_t)std::max(0, W - 22)), on ? (f.typing ? ACCENT : HI) : FG, on ? SEL : BG, on ? term::A_BOLD : 0);
             }
             std::string help1 = f.typing ? "type, enter keeps it, esc cancels"
                               : text_field(f.row) ? "enter type it"
@@ -1448,9 +1669,9 @@ int run(Control &ctl) {
                               : f.row == F_LYRICS ? "enter edit the lyrics in your text editor"
                                                   : "left/right change it";
             if (!f.typing && f.row == F_TEMPO) help1 += "   left/right +/-1   / half   * double";
-            if (f.confirm_leave) term::put(2, H - 5, "Not saved. Press s to save, or Esc again to leave without saving.", BAD, 234, term::A_BOLD);
+            if (f.confirm_leave) term::put(2, H - 5, "Not saved. Press s to save, or Esc again to leave without saving.", BAD, BG, term::A_BOLD);
             int hx = chip(2, H - 3, "up down", "move", W - 1);
-            term::put(hx, H - 3, help1, DIM, 234);
+            term::put(hx, H - 3, help1, DIM, BG);
             hx = chip(2, H - 2, "u", "use what's playing (tempo, beat, kit, feel)", W - 1);
             chip(hx, H - 2, "b", "edit this song's beat", W - 1);
             hx = chip(2, H - 1, "s", "save", W - 1);
@@ -1466,18 +1687,18 @@ int run(Control &ctl) {
             const pattern::Style &w = b.work;
             const pattern::Part &part = w.parts[b.section];
             auto lanes = pattern::drum_names();
-            term::put(2, 2, "BEAT BUILDER", HEAD, 234, term::A_BOLD);
-            term::put(17, 2, (b.naming ? b.name_buf + "_" : w.name) + (b.dirty ? "  (not saved)" : ""), b.naming ? ACCENT : FG, 234, term::A_BOLD);
+            term::put(2, 2, "BEAT BUILDER", HEAD, BG, term::A_BOLD);
+            term::put(17, 2, (b.naming ? b.name_buf + "_" : w.name) + (b.dirty ? "  (not saved)" : ""), b.naming ? ACCENT : FG, BG, term::A_BOLD);
             char info[160];
             std::snprintf(info, sizeof info, "%s   %d BPM   swing %d%%", w.meter.c_str(), w.bpm, (int)std::lround(w.swing * 100));
-            term::put(2, 3, info, DIM, 234);
+            term::put(2, 3, info, DIM, BG);
             int x = 2;
             for (int sec = 0; sec < pattern::SECTIONS; sec++) {
                 std::string t = std::string(" ") + pattern::part_label(sec) + " ";
-                term::put(x, 4, t, sec == b.section ? 16 : FG, sec == b.section ? ACCENT : 238, sec == b.section ? term::A_BOLD : 0);
+                term::put(x, 4, t, sec == b.section ? ON_ACC : FG, sec == b.section ? ACCENT : RAISED, sec == b.section ? term::A_BOLD : 0);
                 x += (int)t.size() + 1;
             }
-            term::put(x + 1, 4, part.bars == 2 ? "2 bars" : "1 bar", DIM, 234);
+            term::put(x + 1, 4, part.bars == 2 ? "2 bars" : "1 bar", DIM, BG);
             int cols = w.steps * std::max(1, part.bars), per = w.steps / std::max(1, w.quarters);
             int rows = std::max(3, H - 10);
             if (b.row < b.top) b.top = b.row;
@@ -1488,7 +1709,7 @@ int run(Control &ctl) {
                 bool used = false;
                 for (const auto &h : part.hits)
                     if (h.note == note) used = true;
-                term::put(2, y, lanes[(size_t)li].first, li == b.row ? ACCENT : used ? FG : DIM, 234, li == b.row ? term::A_BOLD : 0);
+                term::put(2, y, lanes[(size_t)li].first, li == b.row ? ACCENT : used ? FG : DIM, BG, li == b.row ? term::A_BOLD : 0);
                 int cx = 14;
                 for (int c = 0; c < cols; c++) {
                     if (c && c % per == 0) cx++;
@@ -1496,15 +1717,15 @@ int run(Control &ctl) {
                     int v = hit_at(part, c, note);
                     std::string glyph = v >= 115 ? "X" : v >= 88 ? "x" : v >= 58 ? "o" : v ? "g" : (c % per == 0 ? "\xC2\xB7" : ".");
                     bool cur = li == b.row && c == b.col;
-                    int fg = v ? (v >= 115 ? 231 : v >= 88 ? 214 : v >= 58 ? 179 : 244) : 240;
-                    term::put(cx, y, glyph, cur ? 16 : fg, cur ? ACCENT : (c / per) % 2 ? 235 : 234, v ? term::A_BOLD : 0);
+                    int fg = v ? (v >= 115 ? HI : v >= 88 ? ACCENT : v >= 58 ? DIM : FAINT) : LINE;
+                    term::put(cx, y, glyph, cur ? ON_ACC : fg, cur ? ACCENT : (c / per) % 2 ? PANEL : BG, v ? term::A_BOLD : 0);
                     cx++;
                 }
             }
             std::string lights;
             for (int q = 1; q <= s.beats; q++) lights += (s.grid && q == s.beat) ? "\xE2\x97\x8F " : "\xE2\x97\x8B ";
-            term::put(2, H - 4, lights + (s.playing ? " playing" : " stopped"), s.playing ? GOOD : DIM, 234);
-            if (b.confirm_leave) term::put(2, H - 5, "Not saved. Press s to save, or Esc again to leave without saving.", BAD, 234, term::A_BOLD);
+            term::put(2, H - 4, lights + (s.playing ? " playing" : " stopped"), s.playing ? GOOD : DIM, BG);
+            if (b.confirm_leave) term::put(2, H - 5, "Not saved. Press s to save, or Esc again to leave without saving.", BAD, BG, term::A_BOLD);
             int hx = chip(2, H - 3, "up down left right", "move", W - 1);
             hx = chip(hx, H - 3, "space", "hit", W - 1);
             hx = chip(hx, H - 3, "X", "accent", W - 1);
@@ -1531,7 +1752,7 @@ int run(Control &ctl) {
         if (!ctl.current_song.empty() && ctl.library().get(ctl.current_song, cur)) {
             std::string tag = cfg.song >= 0 ? "SONG " + std::to_string(cfg.song + 1) : "SONG";
             term::put(2, y, tag, FAINT, BG, term::A_BOLD);
-            term::put(3 + text_w(tag), y, cur.name, 231, BG, term::A_BOLD);
+            term::put(3 + text_w(tag), y, cur.name, HI, BG, term::A_BOLD);
             std::string right = cur.key.empty() ? "" : "key " + cur.key;
             if (!cfg.setlist.empty()) right += (right.empty() ? "" : "    ") + cfg.setlist;
             if (!right.empty() && 6 + text_w(tag) + text_w(cur.name) + text_w(right) < W) term::put(W - 2 - text_w(right), y, right, DIM, BG);
@@ -1542,11 +1763,11 @@ int run(Control &ctl) {
         int ch = roomy ? 7 : 4, lw = std::min(roomy ? 38 : 32, W / 2);
         card(1, y, lw, ch, "Tempo", ACCENT);
         int bpm = (int)std::lround(s.bpm);
-        if (roomy) {
-            big_number(4, y + 1, bpm, s.grid ? 231 : FG);
+        if (roomy && g_theme->big_tempo) {
+            big_number(4, y + 1, bpm, s.grid ? HI : FG);
             term::put(4 + 8 * (int)std::to_string(bpm).size(), y + 3, "BPM", DIM, PANEL, term::A_BOLD);
         } else
-            term::put(4, y + 1, std::to_string(bpm) + " BPM", 231, PANEL, term::A_BOLD);
+            term::put(4, y + 1, std::to_string(bpm) + " BPM", HI, PANEL, term::A_BOLD);
         std::string bl = s.style + (is_fav(cfg, cfg.style) ? (term::ascii() ? " *" : " \xE2\x98\x85") : "") + "  \xC2\xB7  " + s.kit;
         term::put(4, y + ch - 3 + (roomy ? 0 : 1), bl.substr(0, (size_t)std::max(0, lw - 5)), FG, PANEL);
         if (const pattern::Style *st = pattern::find(cfg.style)) {
@@ -1568,7 +1789,7 @@ int run(Control &ctl) {
                 for (int sec : {pattern::VERSE, pattern::CHORUS}) {
                     bool on = s.section == sec && !s.ending, next = s.next_section == sec;
                     std::string t = std::string(" ") + upper(pattern::section_name(sec)) + " ";
-                    term::put(px, y, t, on ? 16 : next ? ACCENT : DIM, on ? ACCENT : RAISED, on || next ? term::A_BOLD : 0);
+                    term::put(px, y, t, on ? ON_ACC : next ? ACCENT : DIM, on ? ACCENT : RAISED, on || next ? term::A_BOLD : 0);
                     px += text_w(t) + 1;
                 }
                 if (s.next_section >= 0) term::put(px, y, "fill, then " + std::string(pattern::section_name(s.next_section)), ACCENT, PANEL);
@@ -1577,34 +1798,7 @@ int run(Control &ctl) {
             }
             std::string right = state + (s.grid ? (state.empty() ? "" : "   ") + std::string("bar ") + std::to_string(s.bar) : "");
             if (gx + gw - 2 - text_w(right) > px) term::put(gx + gw - 2 - text_w(right), y, right, s.counting || s.ending || s.pause == 2 ? ACCENT : FG, PANEL, term::A_BOLD);
-            // the beats: a light each, the bar sweeping under them
-            int beats = std::max(1, s.beats), inner = gw - 6;
-            int bw = std::max(1, std::min(14, inner / beats - 1));
-            int rows = roomy ? 2 : 1;
-            for (int q = 1; q <= beats; q++) {
-                int bx = gx + 3 + (q - 1) * (bw + 1);
-                bool now = s.grid && q == s.beat;
-                int col = !s.grid ? RAISED : now ? (s.counting ? ACCENT : q == 1 ? 205 : 87) : (s.grid && q < s.beat ? 60 : RAISED);
-                // the lit beat fades through its length
-                if (now && s.phase > 0.6) col = s.counting ? 172 : q == 1 ? 168 : 80;
-                for (int r = 0; r < rows; r++) term::put(bx, y + 1 + r + (roomy ? 1 : 0), std::string(term::ascii() ? std::string((size_t)bw, now ? '#' : '=') : [&] {
-                    std::string b;
-                    for (int c = 0; c < bw; c++) b += "\xE2\x96\x88";
-                    return b;
-                }()), col, PANEL);
-                if (roomy) term::put(bx, y + 4, std::to_string(q), now ? 231 : FAINT, PANEL, now ? term::A_BOLD : 0);
-            }
-            int bar_w = beats * (bw + 1) - 1, by = y + ch - 2 + (roomy ? 0 : 1);
-            if (!roomy) by = y + 2;
-            if (roomy || ch > 3) {
-                double done = s.grid ? std::min(1.0, ((double)std::max(0, s.beat - 1) + s.phase) / beats) : 0;
-                int eighths = (int)(done * bar_w * 8);
-                for (int c = 0; c < bar_w; c++) {
-                    int e = std::max(0, std::min(8, eighths - c * 8));
-                    std::string g = e >= 8 ? term::g_block() : e > 0 ? term::g_partial(e) : (term::ascii() ? "." : "\xE2\x96\x81");
-                    term::put(gx + 3 + c, roomy ? by : y + 3, g, e ? HEAD : RAISED, PANEL);
-                }
-            }
+            beat_lights(s, gx, y, gw, ch, roomy);
         }
         y += ch + 1;
         // ---- the loops: A and B as tiles, the same as on the iPad
@@ -1618,7 +1812,7 @@ int run(Control &ctl) {
             int lh = roomy ? 5 : 3;
             card(1, y, W - 2, lh, "Loops", B_COL);
             bool songish = cfg.pedal_mode == "song" || cfg.pedal_mode == "off";
-            int tw = std::max(16, std::min(28, (W - 8) / 3));
+            int tw = std::max(ON_ACC, std::min(28, (W - 8) / 3));
             for (int t = 0; t < 2; t++) {
                 std::string T = t ? "B" : "A";
                 bool rec = s.loop.rfind("Recording " + T, 0) == 0 || s.loop.rfind("Overdub " + T, 0) == 0 || s.loop.rfind("Overdubbing " + T, 0) == 0;
@@ -1631,7 +1825,7 @@ int run(Control &ctl) {
                                   : has ? "Ready" : empty ? "Empty" : songish ? "Tap to play" : "";
                 if (term::ascii()) label = off ? "Single mode" : rec ? (layering ? "* LAYERING" : "* RECORDING") : next ? "NEXT BAR" : playing ? "> PLAYING" : label;
                 int col = t ? B_COL : A_COL;
-                int bg = off ? PANEL : rec ? REC : playing ? col : RAISED, fg = off ? FAINT : rec ? 231 : playing ? 16 : next || queued ? ACCENT : FG;
+                int bg = off ? PANEL : rec ? REC : playing ? col : RAISED, fg = off ? FAINT : rec ? HI : playing ? ON_ACC : next || queued ? ACCENT : FG;
                 int x0 = 4 + t * (tw + 2), h = lh - 2;
                 term::fill(x0, y + 1, tw, h, bg);
                 term::put(x0 + 1, y + 1, T, playing || rec ? fg : col, bg, term::A_BOLD);
@@ -1639,7 +1833,7 @@ int run(Control &ctl) {
                 if (h > 1) {
                     int n = ctl.bars_for(t);
                     std::string sub = std::to_string(n) + (n == 1 ? " bar" : " bars");
-                    term::put(x0 + 4, y + 2, sub, playing ? 16 : rec ? 224 : DIM, bg);
+                    term::put(x0 + 4, y + 2, sub, playing ? ON_ACC : rec ? HI : DIM, bg);
                     if (ctl.track == t && !off) term::put(x0 + tw - 8, y + 2, "\xE2\x97\x86 keys", playing || rec ? fg : ACCENT, bg);
                 }
                 for (int r = 0; r < h; r++) g_hots.push_back({x0, y + 1 + r, tw, "select", T});
@@ -1670,8 +1864,8 @@ int run(Control &ctl) {
             }
         }
         if (!s.problem.empty()) {
-            term::fill(0, H - foot_rows - 1, W, 1, 52);
-            term::put(2, H - foot_rows - 1, "! " + s.problem, 217, 52, term::A_BOLD);
+            term::fill(0, H - foot_rows - 1, W, 1, PROB_BG);
+            term::put(2, H - foot_rows - 1, "! " + s.problem, PROB_FG, PROB_BG, term::A_BOLD);
         }
         // ---- the keys, as keycaps (click one, or press it)
         if (foot_rows == 1) {
@@ -1707,6 +1901,7 @@ int run(Control &ctl) {
             x = chip(x, H - 1, k("kits"), "kits", W - 1, "kits");
             x = chip(x, H - 1, k("builder"), "build a beat", W - 1, "builder");
             x = chip(x, H - 1, k("preview"), "hear on laptop", W - 1, "preview");
+            x = chip(x, H - 1, k("look"), "look", W - 1, "look");
             x = chip(x, H - 1, k("help"), "all keys", W - 1, "help");
             x = chip(x, H - 1, k("quit"), "quit", W - 1, "quit");
             (void)x;
@@ -1726,7 +1921,7 @@ int run(Control &ctl) {
                 {"Loops", {{k("smart"), "record, then layer on"}, {k("record"), "record"}, {k("overdub"), "overdub"}, {k("record_ab"), "record A then B, then A plays"},
                            {k("track_b"), "track A / B"}, {k("bars_down") + " " + k("bars_up"), "loop length"}, {k("undo"), "undo"}, {k("clear"), "clear the track"}, {k("stop_loops"), "stop loops (on the bar)"}}},
                 {"Songs & sounds", {{k("songs"), "songs (e edit, n new)"}, {k("prev_song") + " " + k("next_song"), "previous / next song"}, {k("beats"), "favorite beats"}, {k("all_beats"), "all beats"},
-                                    {k("builder"), "build a beat"}, {k("kits"), "drum kits"}, {k("window"), "open the window"}, {k("quit"), "quit"}}}};
+                                    {k("builder"), "build a beat"}, {k("kits"), "drum kits"}, {k("look"), "the look: themes, beat lights"}, {k("window"), "open the window"}, {k("quit"), "quit"}}}};
             int cols = w >= 90 ? 2 : 1, colw = (w - 4) / cols;
             int cx = x0 + 2, cy = y0 + 2, col = 0, top = cy;
             int bottom = y0 + h - 5;
@@ -1736,17 +1931,17 @@ int run(Control &ctl) {
                     cx = x0 + 2 + col * colw;
                     cy = top;
                 }
-                term::put(cx, cy++, upper(g.first), HEAD, 236, term::A_BOLD);
+                term::put(cx, cy++, upper(g.first), HEAD, POPUP, term::A_BOLD);
                 for (const auto &l : g.second) {
                     if (cy > bottom) break;
                     caps(cx, cy, l.key);
-                    term::put(cx + 12, cy++, l.label, FG, 236);
+                    term::put(cx + 12, cy++, l.label, FG, POPUP);
                 }
                 cy++;
             }
             std::vector<std::string> tips = {"Loops start on the bar line and close exactly their length later: no timing needed.",
                                              "The mouse works too: click a keycap or a loop tile.   Any key closes this."};
-            for (int i = 0; i < 2; i++) term::put(x0 + 2, y0 + h - 3 + i, tips[(size_t)i].substr(0, (size_t)std::max(0, w - 4)), DIM, 236);
+            for (int i = 0; i < 2; i++) term::put(x0 + 2, y0 + h - 3 + i, tips[(size_t)i].substr(0, (size_t)std::max(0, w - 4)), DIM, POPUP);
         }
         term::present();
     }

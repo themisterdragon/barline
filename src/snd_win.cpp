@@ -118,6 +118,20 @@ std::vector<Card> cards() {
             }
             col->Release();
         }
+        // Windows' chosen output (Sound settings) first: "this computer's sound" is that one
+        IMMDevice *def = nullptr;
+        if (SUCCEEDED(en->GetDefaultAudioEndpoint(eRender, eConsole, &def))) {
+            LPWSTR did = nullptr;
+            if (SUCCEEDED(def->GetId(&did))) {
+                for (size_t i = 1; i < outs.size(); i++)
+                    if (outs[i] == did) {
+                        std::swap(outs[0], outs[i]);
+                        std::swap(out_names[0], out_names[i]);
+                    }
+                CoTaskMemFree(did);
+            }
+            def->Release();
+        }
         en->Release();
     }
     UINT nm = midiOutGetNumDevs();

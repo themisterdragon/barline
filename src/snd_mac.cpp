@@ -67,6 +67,7 @@ struct Stream {
     common::Ring ring;
     unsigned ch = 2;
     std::atomic<bool> dead{false};
+    size_t keep = 0;   // how full Barline keeps the ring (low latency); its size is the safety margin
     long device_latency = 0;   // frames (at Barline's rate) after the ring: the device's own buffer and latency
 };
 
@@ -126,6 +127,18 @@ std::vector<Card> cards() {
                 out_names.push_back(n.empty() ? "Sound output" : n);
             }
         }
+    }
+    // the Mac's chosen output (Sound settings) first: "this computer's sound" is that one
+    {
+        AudioObjectPropertyAddress da = {kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain};
+        AudioObjectID def = 0;
+        UInt32 ds = sizeof def;
+        if (AudioObjectGetPropertyData(kAudioObjectSystemObject, &da, 0, nullptr, &ds, &def) == noErr)
+            for (size_t i = 1; i < outs.size(); i++)
+                if (outs[i] == def) {
+                    std::swap(outs[0], outs[i]);
+                    std::swap(out_names[0], out_names[i]);
+                }
     }
     ItemCount nd = MIDIGetNumberOfDestinations();
     for (ItemCount i = 0; i < nd; i++) {
@@ -196,14 +209,26 @@ bool Pcm::open(int card, int device, bool capture, unsigned want_rate, unsigned 
     AURenderCallbackStruct cb = {render, s};
     if (AudioUnitSetProperty(s->unit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &cb, sizeof cb) != noErr)
         return fail("couldn't play to it");
-    // Barline's side of the buffer: the blocks asked for
-    s->ring.init((size_t)want_period * std::max(2u, want_periods));
     if (AudioUnitInitialize(s->unit) != noErr) return fail("another program has it, or it went away");
     double dev_rate = 0;
     {
         AudioObjectPropertyAddress ra = {kAudioDevicePropertyNominalSampleRate, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain};
         UInt32 rs = sizeof dev_rate;
         AudioObjectGetPropertyData(dev, &ra, 0, nullptr, &rs, &dev_rate);
+    }
+    // Barline's side of the buffer: room for what the device takes at once (its block, in Barline's rate,
+    // and the rate converter's appetite) three times over, and never less than the blocks asked for. Too
+    // small, and every pull from the device finds it short: crackle and gaps.
+    {
+        UInt32 dev_block = device_u32(dev, kAudioDevicePropertyBufferFrameSize, kAudioObjectPropertyScopeGlobal);
+        UInt32 slice = 0, ss = sizeof slice;
+        AudioUnitGetProperty(s->unit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &slice, &ss);
+        double ratio = dev_rate > 0 ? want_rate / dev_rate : 1.0;
+        size_t pull = (size_t)std::ceil(std::max<UInt32>(dev_block, 256) * ratio) + 64;
+        size_t want = std::max<size_t>((size_t)want_period * std::max(2u, want_periods), 3 * pull);
+        if (slice) want = std::max<size_t>(want, std::min<size_t>(slice, 4096) + pull);
+        s->ring.init(std::max<size_t>(want, 1024));
+        s->keep = std::max<size_t>(2 * pull, (size_t)want_period * 2);
     }
     UInt32 dev_frames = device_u32(dev, kAudioDevicePropertyLatency, kAudioObjectPropertyScopeOutput) +
                         device_u32(dev, kAudioDevicePropertySafetyOffset, kAudioObjectPropertyScopeOutput) +
@@ -249,7 +274,8 @@ bool Pcm::write(const float *data, unsigned frames) {
     unsigned done = 0;
     while (done < frames) {
         if (s->dead) return false;   // unplugged
-        size_t room = s->ring.room();
+        size_t filled = s->ring.filled();
+        size_t room = std::min(s->ring.room(), filled < s->keep ? s->keep - filled : 0);
         if (room == 0) {
             std::this_thread::sleep_for(std::chrono::microseconds(500));
             continue;

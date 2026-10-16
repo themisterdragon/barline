@@ -23,7 +23,7 @@ const std::map<std::string, std::string> &default_keys() {
         {"panic", "!"},         {"click_toggle", "m"},  {"all_beats", "a"},     {"builder", "j"},       {"preview", "h"},
         {"swing_step", "w"},    {"pocket_down", "<"},   {"pocket_up", ">"},     {"loose_down", "("},    {"loose_up", ")"},      {"lock", "g"},
         {"window", "v"},        {"pause_half", "z"},    {"pause_bar", "x"},     {"clap", "d"},
-        {"record_ab", "f"}};
+        {"record_ab", "f"},     {"look", "y"}};
     return K;
 }
 
@@ -102,6 +102,8 @@ Config load() {
         else if (k == "web") c.web = v == "on";
         else if (k == "web_port") c.web_port = (int)d;
         else if (k == "network") c.network = v.empty() ? "auto" : v;
+        else if (k == "tui_theme") c.tui_theme = v;
+        else if (k == "tui_lights") c.tui_lights = v;
         else if (k == "network_only") c.network_only = v == "on";
         else if (k == "web_code") c.web_code = v;
         else if (k == "song") c.song = (int)d;
@@ -130,6 +132,7 @@ bool save(const Config &c) {
     o << "clock_div = " << c.clock_div << "\n";
     o << "send_clock = " << onoff(c.send_clock) << "\nmidi_start = " << onoff(c.midi_start) << "\nmidi_channel = " << c.midi_channel << "\nlead_ms = " << c.lead_ms
       << "\nlatency_ms = " << c.latency_ms << "\nplay_early_ms = " << c.play_early_ms << "\npedal_lag_ms = " << c.pedal_lag_ms << "\n";
+    o << "tui_theme = " << c.tui_theme << "\ntui_lights = " << c.tui_lights << "\n";
     o << "network = " << c.network << "\nnetwork_only = " << onoff(c.network_only) << "\n";
     o << "web = " << onoff(c.web) << "\nweb_port = " << c.web_port << "\nweb_code = " << c.web_code << "\nsong = " << c.song << "\n";
     for (const auto &f : c.favorites) o << "favorite = " << f << "\n";

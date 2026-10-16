@@ -199,6 +199,10 @@ void Engine::loop_thread() {
                 out_.close();
                 out_ok_ = false;
             }
+        } else if (click_) {
+            // no pedal, but the laptop's own sound is on: its device sets the pace (its write waits), so the
+            // drums never run ahead of it or starve it (a timer here and the device's clock drift apart)
+            timed = false;
         } else {   // no sound device: keep time with the clock alone (MIDI still goes out on time)
             if (!timed) {   // it just went away: the timer starts now (not from when the thread started)
                 timed = true;
