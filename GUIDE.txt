@@ -1,0 +1,173 @@
+BARLINE - drums, a click, and perfectly timed loops for a USB looper pedal
+
+Barline plays real drum kits into your pedal, keeps the pedal in time with MIDI clock, and
+presses Record/Overdub for you exactly on the bar line, so every loop comes out the right length.
+You run it from a laptop (Linux, Windows, or a Mac; even an old one) and play it from the laptop's
+keyboard, a page-turner footswitch, or an iPad/phone on the same Wi-Fi.
+
+
+WHAT YOU NEED
+  - A computer: Linux (Intel/AMD, or ARM like a Raspberry Pi 4/5), Windows 10 or 11 (Intel/AMD or
+    ARM), or a Mac with macOS 11 or later (Apple silicon or Intel). Nothing else to install.
+  - The looper pedal on a USB cable.
+  - Optional: an iPad or phone, a page-turner footswitch, headphones for the click.
+
+
+INSTALL
+  Windows: unzip Barline-*-windows-*.zip, double-click barline.exe (README-Windows.txt).
+  Mac: unzip Barline-*-mac.zip, drag Barline.app to Applications, open it (README-Mac.txt).
+  Linux:
+  tar xzf Barline-*.tar.gz
+  cd Barline-*/
+  sh install.sh
+Then "Barline" is in your app menu. Check everything with:   barline doctor
+(It says what's wrong in plain words and how to fix it.) Installing a newer version the same way
+keeps your songs, beats, and settings.
+
+
+SET UP THE LOOPER PEDAL (once; hold the encoder for the menu)
+  MIDI > Source: USB    Clock: On    Ext Ctrl: On    Channel: Omni
+  Logic: R>P>D
+  Ext Ctrl matters most: when it's off, the pedal ignores everything Barline sends, and loops
+  never start. With Clock off, a Record press just flashes Rec at 0:00 and waits.
+
+
+THREE WAYS TO RUN IT
+  Barline (app menu)  or  barline window
+      A window on the laptop with everything: Play, Lyrics, Songs, Beats, Settings.
+      Closing the window quits Barline. Opening it again while it runs brings the window back.
+  barline        (in a terminal)
+      The keyboard screen. v opens the window too.
+  barline headless
+      No screen at all, just the iPad page: for a computer tucked away at the side of the stage.
+
+The iPad page and the window are the same thing. The address and a 6-digit code are on the
+laptop (top of the terminal screen, or Settings in the window). Open the address in Safari on the
+same Wi-Fi, type the code once, then Share > Add to Home Screen.
+
+
+PLAYING
+  Start           count-in (the numbers show big on the iPad), then the beat
+  Next Part       a fill, then verse <-> chorus
+  End             a proper ending on the next bar, then everything stops cleanly
+  Stop Now        hold it: stops instantly (a stray tap can't kill the drums mid-song)
+  Pause 1 bar     a dramatic pause: the drums stop for the whole next bar (cymbals grabbed),
+                  then come back on the one with a crash
+  Pause 1/2 bar   the same for the second half of a bar (this bar if there's time, else the next)
+  Clap along      on/off: from the next bar the drums drop out and hand claps play on the
+                  backbeat; tap it again and the drums come back on the next bar with a crash
+  (The bars and the pedal's clock keep going through both, so your loops stay in time; the
+  loops themselves keep playing.) The bottom bar has Pause and Clap too; whether its Pause is
+  a whole or half bar is in Settings > This device.
+  Tap             tap the tempo on the iPad itself (timed there, so Wi-Fi delays don't matter)
+  Feel            Locked to the grid, or Human (swing, pocket, looseness)
+
+The drums go to the pedal only. To hear them on the laptop (practice, no pedal), turn on
+Hear on laptop. It's off every time Barline starts.
+
+The Lyrics tab always keeps the beat lights and the Start / Next / A / B / Record / Pause buttons
+at the bottom, however far the lyrics scroll. Auto-scroll speed is in lines a minute, and each
+song remembers its own. In Settings, "Lyrics auto-scroll starts with the drums" does what it says.
+
+
+BEATS OF YOUR OWN
+  Beats tab > Edit (or j on the laptop). Every part can be changed: Verse, Chorus, Fill to
+  chorus, Fill to verse, Count-in, Ending, and Clap along (fills and endings can be 1 or 2 bars;
+  an empty ending just stops). Play repeats the part you're on, a fill or ending after a bar of
+  its groove, so you hear the transition. Built-in beats are saved as a copy of your own.
+
+
+LOOPS
+  Record          the pedal starts recording on the next bar line and plays exactly N bars later.
+                  On a track that already has a loop it says "Layer on": it adds a layer for one
+                  loop length (the pedal's Record/Play does that on a full track). To start a
+                  track over, hold Clear first.
+  Loops always start and end on a bar line. Press during the bar BEFORE you start playing: the
+  screen counts down ("Recording A in 3") to the one. A press on (or after) the one waits for the
+  next bar, so the loop never comes out a beat off.
+  Record again on the same track while it records: it closes early, on the next bar line.
+  Record on the other track while one records: that one starts the moment this one closes
+  (in Multi mode, one bar later).
+  Track A / B: big tiles that say what each track is doing (Playing, Next bar, Recording, Ready,
+  Empty). A is blue and B is violet everywhere. Tapping one aims Record at it; in Song mode it
+  also switches the pedal to that loop on the next bar line (see below).
+  Pedal mode (Settings > The pedal): Barline sets the pedal to it (pedal firmware 1.0.1 or later; update it with the
+  maker's firmware updater on a Mac or PC). On firmware
+  1.0.0, set the same mode on the pedal too (hold the encoder > Mode).
+  Loop length: for the selected track. In Song mode A and B can differ (verse 4, chorus 2).
+
+SONG MODE: A FOR THE VERSE, B FOR THE CHORUS
+  Song mode keeps two loops of any length, and only one plays at a time. Record the verse loop on
+  A and the chorus loop on B. Then:
+  Tap A or B          that loop comes in on the next bar line (the tile says NEXT BAR until it
+                      does). An empty track isn't played: the tap gets it ready to record.
+  Next Part           the drums fill, and the other loop comes in with the new part.
+  End                 the drums play their ending and the loops stop on its last hit (the final
+                      crash), not a bar later. Multi and Sync stop both tracks.
+  Stop Now (hold)     the drums stop at once; the loop stops on the next bar line (so it comes
+                      back in time).
+  Record A -> B (f, or the button under Record): one press records the whole song's loops with
+                      no waiting in between. A records for its length from the next bar line, B
+                      starts the instant A closes, and when B closes A plays. Set each track's
+                      length first ([ ] with A or B picked). For new loops: clear A and B first.
+  Changed your mind before the bar line? Tap the loop that's playing: the switch is called off.
+  Next Part only switches to a track Barline knows has a loop (recorded or played this session).
+  "Not sure" works the same way as Song.
+  Keep loops in time: stop them with Barline (Stop Loops stops on the bar line). The pedal
+  picks a stopped loop up where it stopped, so a foot stop mid-bar brings it back off the grid.
+  Right after Barline starts it can't know what the pedal is playing (the pedal doesn't say),
+  so the first switch stops on one bar and plays on the next (a Play on a loop that's already
+  playing would overdub it). From then on, switches are clean.
+  Why Barline never just "selects" a track on the pedal: in Song mode, selecting stops the
+  playing loop without starting the other. Each press picks its own track a moment before it goes.
+  Clear           hold it (so a stray tap can't wipe a loop)
+  Loop length     1, 2, 4, 8, or 16 bars
+
+
+SONGS, SET LISTS, LYRICS
+  Songs tab: pick a set list, tap a song to load its tempo, beat, kit, and feel. While the drums
+  play, switching songs takes a second tap (so a stray tap can't change the tempo mid-song).
+  Edit a song (lyrics, tempo, beat, pedal slot...), or play it the way you like and tap
+  "Save tempo, beat, kit & feel to this song".
+  From a set list app: Export Database (to Files), then Songs tab > Import.
+
+
+FOOTSWITCH / KEYBOARD (laptop)
+  space drums   n next part   e ending   z/x pause half/whole bar   d clap along
+  t tap   +/- tempo   r record   o overdub   f record A then B
+  Page Down: record, then overdub (one-button)   Page Up: undo   left/right: previous/next song
+  u undo   c clear   s stop loops   b track A/B   [ ] loop length   h hear on laptop   ? help
+On the iPad, a Bluetooth footswitch can work like the laptop's keys, scroll the lyrics, or do
+nothing (Settings > This device).
+
+
+IF SOMETHING'S WRONG
+  barline doctor            checks the pedal, sound, MIDI, the iPad page, and the window
+  Pedal unplugged mid-song?   The bars keep counting; plug it back in and Barline picks it up
+                              by itself within a couple of seconds.
+  iPad says "Lost touch"?     Same Wi-Fi? Is the laptop asleep? It reconnects on its own.
+  No venue Wi-Fi?             Bring your own: plug a travel router into the laptop's USB port (a
+                              USB network adapter to one of its LAN ports, or a router that shares
+                              its network over USB) and put the iPad on its Wi-Fi. Network: Auto
+                              shows the router's address first (Settings > Network on the iPad).
+                              "Only devices on that network" keeps the venue's Wi-Fi out.
+                              No address on the router's link? barline doctor says how to get one.
+                              The firewall may need the port open (doctor says how).
+  iPad screen goes to sleep?  Settings > This device > Keep the screen on, and for a gig also the
+                              iPad's Settings > Display & Brightness > Auto-Lock > Never.
+  "Another program is using it" for the pedal: PipeWire grabbed it. barline doctor --fix tells
+                              PipeWire to leave the pedal alone (and how to undo that).
+  What happened at the gig?   ~/.local/share/barline/barline.log
+
+
+YOUR STUFF
+  ~/.local/share/barline: songs/, setlists/, beats/, barline.conf. Plain text: copy the
+  folder to back it up. Uninstall with: sh uninstall.sh (keeps your stuff).
+
+Drum kit credits: KITS.md.
+
+
+ABOUT
+  Barline is free software (GNU GPL version 3). The drum kits' credits are in KITS.md.
+  Barline is an independent project, not affiliated with or endorsed by any pedal or app maker.
+

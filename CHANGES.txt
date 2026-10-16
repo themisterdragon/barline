@@ -1,0 +1,183 @@
+BARLINE CHANGES
+
+NEW IN 0.6.0
+  - End: the loops stop with the ending's last hit (the final crash), not a bar after it. In
+    Multi and Sync both tracks stop.
+  - Record A -> B: one press (f, or the iPad button under Record) records A for its length, B the
+    instant A closes, then A plays when B closes. No waiting between sections. For new loops.
+  - Your own router plugged into the laptop's USB port: the iPad page shows its address (Network:
+    Auto picks a USB router first, or pick USB router / Wi-Fi / Cable), an option lets only that
+    network in, and barline doctor helps get the router's link an address. A change from the
+    iPad that would shut that iPad out is refused. The T2 Mac's own chip link is ignored.
+  - Windows and macOS: Barline runs on Windows 10/11 (WASAPI sound, Windows MIDI; double-click
+    barline.exe for the window) and macOS 11+ (Core Audio, Core MIDI; Barline.app), as well as
+    Linux. Same screens, same iPad page, same timing engine.
+  - A new look for the laptop screen: big tempo digits, beat lights with the bar sweeping under
+    them, A (blue) and B (violet) loop tiles like the iPad's, a clean "lately" list, and keycaps
+    along the bottom grouped Drums / Loops / More. Click any keycap or loop tile with the mouse.
+    ? shows every key by what it's for. Plain on plain terminals (NO_COLOR, the Linux console,
+    no UTF-8). Every key works as before.
+
+NEW IN 0.5.7 (bug bash; End and the clock change checked on the pedal with firmware 2.0)
+  - Fixed: starting the drums for the next song made the pedal play the last loop by itself (the
+    MIDI Start message does that), and then a tap on that loop layered onto it. Barline no longer
+    sends Start; the pedal keeps to the beat from the clock alone (loops still land within ~5 ms of
+    the bar line). midi_start = on in the settings file brings the old way back.
+  - Stop Now stops the loops too, on the next bar line (a loop stopped mid-bar comes back off the
+    grid); the drums still stop at once.
+  - A switch waiting for its bar line can be taken back: Stop Loops, End, or tapping the loop
+    that's playing cancels it. Tapping A then Next Part at once no longer presses A twice (which
+    layered onto it).
+  - Next Part only switches to a track Barline knows has a loop (a press on an empty track starts
+    a recording).
+  - A press that has started always gets its let-go (a held note is a long press: Undo or Clear).
+
+NEW IN 0.5.6 (Song mode checked on the pedal with firmware 2.0: every switch on the bar line)
+  - Song mode: tap A or B and that loop comes in on the next bar line. Next Part switches the loop
+    too, with the new part. End stops the loop with the drums' ending.
+  - Fixed: picking a track sent "Select Track" to the pedal, which in Song mode stopped the loop
+    that was playing without starting the other (silence), and then Record/Stop/Clear meant for A
+    could land on B. Each press now picks its own track a moment before it goes.
+  - A new Play page: what's connected and the pedal mode at the top, the part name big enough to
+    read from the mic, A (blue) and B (violet) as big tiles that say Playing / Next bar /
+    Recording / Ready / Empty, one Record button ("Layer on" when the track has a loop), one Pause.
+    A tile says NEXT BAR the moment you tap it. Phones on their side get two columns, Android
+    phones tick under your thumb, and the page honors Reduce Motion.
+  - The bottom bar on other tabs has A and B too, so you can switch loops from the Lyrics tab.
+  - Pedal mode moved to Settings > The pedal. Verse / Chorus buttons and Follow the song are gone
+    (Next Part does both).
+
+NEW IN 0.5.5 (tested on the pedal with firmware 2.0, with a one-hit test loop)
+  - Play A / Play B bring a loop back exactly on the bar line, every time (within 2 ms in testing):
+    a loop Barline stopped (Stop Loops stops on the bar line) comes straight back in on the next
+    bar; a loop that's playing stops on the next bar line and comes back in on the one after (the
+    pedal can't take a Stop and a Play at once). Works on loops you recorded yourself too.
+  - Pause 1/2 bar always waits for the next measure (it could cut into the bar you were in).
+  - Picking track A or B waits for the next bar line (in Song mode it switches loops).
+  - Good to know: the pedal picks a stopped loop up from where it stopped. Stopped with your foot in
+    the middle of a bar, it comes back off the grid; stop with Barline (iPad Stop Loops or a
+    footswitch set up in Barline) and it comes back in time.
+
+NEW IN 0.5.4
+  - Song mode loops can be different lengths: Loop length sets the selected track, so the verse
+    on A can be 4 bars and the chorus on B 2. Songs save both (Track B length in the song editor;
+    blank = the same as A).
+  - Barline sets the pedal's mode again (pedal firmware 1.0.1 and later take mode changes over
+    MIDI; checked on firmware 2.0.0). On firmware 1.0.0, set the mode on the pedal too.
+
+NEW IN 0.5.3
+  - Song mode from the iPad: Play A / Play B switch loops on the next bar line, and "Follow the
+    song" plays loop A in the verse and loop B in the chorus, switching where the fill ends.
+  - Pedal mode (Single, Multi, Sync, Song, or Not sure): tell Barline the mode the pedal is set
+    to (on the pedal: Menu > Mode; it doesn't take mode changes over MIDI), and it presses track B
+    the right way for it (the B notes work in Sync and Song; Multi selects B first).
+  - Track A / B buttons show which tracks have a loop.
+  - The check-up (barline doctor) and the Guide point at the pedal's Ext Ctrl setting: when
+    it's off, the pedal ignores every press.
+
+NEW IN 0.5.2
+  - Fixed: loops could come out a beat off. A late Record press started the loop on the next
+    beat (the "grace" from 0.3.0), which cut off the one and recorded the next bar's one instead;
+    and a press too close to a bar line could reach the pedal just after its downbeat, so the
+    pedal started a beat late. Now every loop starts and ends on a bar line, with the pedal's
+    press always early enough, and the screen counts down to the bar it starts on.
+  - Tracks A and B: Record on B while A is recording starts B the moment A closes (on that bar
+    line) instead of confusing the pedal; Record again on the same track closes it early on the
+    next bar line. The one-button footswitch keeps track of A and B separately.
+
+NEW IN 0.5.1
+  - Dramatic pause: Pause 1 bar (the whole next bar) or Pause 1/2 bar (the second half of a bar).
+    The drums stop dead, then come back on the one with a crash; the bars and clock keep going.
+  - Clap along (on/off): the drums drop out and hand claps play on the backbeat until you tap it
+    again; then the drums come back on the next bar with a crash. Kits without claps borrow the
+    Cajon kit's real ones (or Barline's own).
+    On the iPad: Play tab and the bottom bar. Laptop: z / x pause half / whole bar, d clap along.
+  - The beat editor (iPad and laptop) edits every part: both fills (into the chorus and back to
+    the verse, now separate), the count-in, the ending, and the clap-along pattern. Two-bar fills
+    and endings play both bars now. Play repeats the part you're editing, a transition after a
+    bar of its groove.
+  - Fixed: a sound device another program was using could make Barline wait forever (and
+    hang when quitting) instead of saying it's busy and trying again.
+
+NEW IN 0.5.0 (ready for the stage)
+  - A window of its own: Barline in the app menu (or barline window) opens everything in a
+    window on the laptop, no terminal needed and no pairing code. Closing it quits Barline;
+    opening it again while it runs brings the window back. In the terminal, v opens it too.
+  - barline headless: no screen at all, just the iPad page (a computer at the side of the stage).
+  - barline doctor: checks the pedal, sound, MIDI, permissions, the iPad page, and the window,
+    and says how to fix what's off. barline doctor --fix keeps PipeWire off the pedal.
+  - Plug and unplug: the pedal can be plugged in after Barline starts, or come back after a
+    loose cable mid-song; Barline picks it up within a couple of seconds and keeps the beat.
+    (Before, an unplugged pedal made the bars race ahead.)
+  - The laptop's own sound is only used while the click or Hear on laptop is on, so the computer's
+    other sound works the rest of the time, and turning them on never interrupts the drums.
+  - Built-in sound that only takes 4 or 6 channels, or odd block sizes (like a T2 Mac's), opens now
+    (the sound goes to the first two channels).
+  - One Barline at a time; a second one just brings up the first one's window.
+  - A clean quit when the terminal closes or the computer shuts down (the pedal's clock is stopped).
+  - barline.log keeps what happened (for "what went wrong at the gig?").
+  - Runs on ARM too (Raspberry Pi 4/5): the package has both programs and the installer picks.
+  - The installer adds Barline to the app menu; uninstall.sh removes it (keeping your songs).
+
+  The iPad page, for the stage:
+  - Lyrics (and Songs, Beats, Settings) keep a bar at the bottom with the beat lights, the bar
+    and part, tempo -/+, and Start/End, Next Part, Record, Overdub, however far the lyrics scroll.
+  - The count-in shows as huge numbers you can read from across the stage.
+  - The beat lights move smoothly and on time, even when the Wi-Fi is slow.
+  - "Lost touch with Barline" shows (in red) if the connection drops; it reconnects itself.
+  - The pedal connection shows on the Play tab (and "No pedal" in the bottom bar).
+  - Keep the screen on (Settings > This device).
+  - Tap tempo is timed on the iPad itself, so Wi-Fi delays don't throw it off.
+  - Clear and Stop Now need a short hold, so a stray tap can't wipe a loop or kill the drums.
+  - Switching songs while the drums play takes a second tap.
+  - A Bluetooth footswitch or keyboard on the iPad can work like the laptop's keys, scroll the
+    lyrics, or do nothing.
+  - Section names in lyrics (Verse, [Chorus], Bridge:) stand out; each song remembers its
+    auto-scroll speed; auto-scroll can start with the drums.
+  - On an iPad on its side (or the laptop window) the Play tab is two columns.
+
+NEW IN 0.4.0
+  - Import from a set list app: in the app, export its database
+    (to Files / iCloud Drive). Then on the Barline iPad page: Songs tab > Import, choose the
+    .sqlite file. Every song and its lyrics come in, and every show becomes a set list (in
+    order). New songs start on the Singer-Songwriter beat at 100 BPM: pick a beat and tempo for
+    each (Edit), or set the feel while it plays and tap "Save tempo, beat & feel to this song".
+    Importing again later updates the songs and keeps the beats you picked.
+
+NEW IN 0.3.1
+  - Feel mode: g switches between LOCKED to the grid (every hit exactly on time) and Human
+    (your pocket and looseness). Switching never loses your settings; nudging the pocket or
+    looseness while locked switches back to Human. On the iPad: the two buttons on the Feel card.
+    Each song remembers its mode ("Save tempo, beat & feel to this song").
+
+NEW IN 0.3.0 (more forgiving)
+  - Late Record/Overdub: press within about a beat after the bar line and it starts on the next
+    beat instead of waiting a whole bar. The loop is still exactly the length you picked, so it
+    stays in time with the drums. (grace_beats in the settings file; 0 turns it off.)
+  - Feel: w swing (the beat's own, 0, 25, 50, 66%), < > pocket (pushed / laid back; the snare
+    and hats move, the kick stays on the beat), ( ) looseness. On the iPad: the Feel card on the
+    Play tab, with "Save tempo, beat & feel to this song".
+  - Tempo changes glide over about a beat instead of jumping (a loop being recorded still comes
+    out exactly its length). If loops are already playing on the pedal you get a heads-up: they
+    can't follow a tempo change.
+
+NEW IN 0.2.1
+  - Drums go to the pedal ONLY. The laptop's own speakers/headphones get them only when you
+    turn on Hear on laptop (h, or the button on the iPad's Beats tab). It's off every time
+    Barline starts. The beat builder turns it on when you play a beat there, and turns it
+    (and the preview) off when you leave. The click never goes to the pedal.
+
+NEW IN 0.2.0
+  - A clean stop: when the drums end (or the loop you recorded closes), the clock stops and
+    the bars reset. Starting again counts in fresh.
+  - 25 signature grooves (Heartland Jangle, Swung Strum-Along, Loud-Quiet-Loud, Seven Four in
+    7/4...). p = your favorites, a = all beats; in the list, f stars a beat.
+  - Beat builder: j (starts from a copy of the beat that's on). Arrows, space places a hit,
+    X accent, o soft, g ghost, tab = verse/chorus/fill, m time signature, enter plays it, s saves.
+  - The iPad/phone page: the address and code are at the top of the Barline screen.
+    Open it in Safari on the same Wi-Fi, type the code once, then Share > Add to Home Screen.
+      Play: start/end, next part, tempo/tap, big beat lights, loop buttons
+      Lyrics: big lyrics for the current song, size, auto-scroll, prev/next song
+      Songs: set lists (tap to load a song's beat/tempo/kit/pedal slot), edit songs and lyrics,
+             import a set list app's spreadsheet (CSV)
+      Beats: favorites, all beats, kits

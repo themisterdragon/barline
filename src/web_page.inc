@@ -1,0 +1,1297 @@
+// Generated from web/index.html by tools/embed_web.py: edit the page, then run that.
+static const char *PAGE = R"WEBPAGE(<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Barline">
+<meta name="theme-color" content="#111214">
+<link rel="manifest" href="/manifest.json">
+<title>Barline</title>
+<style>
+:root {
+  color-scheme: dark; accent-color: #ffb347;
+  --bg: #111214; --panel: #1b1d21; --panel2: #24272d; --line: #33373e;
+  --text: #f2f2f0; --dim: #a7abb3; --accent: #ffb347; --good: #6fd08c; --bad: #ff6b6b; --blue: #6cb6ff;
+  --a: #5cc8ff; --a-bg: #0f2a38; --b: #d29bff; --b-bg: #2a1a3a;   /* loop A and loop B, the same everywhere */
+  --r: 14px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+  font: 17px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-variant-numeric: tabular-nums; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+button:disabled { opacity: 0.4; }
+body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
+button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 14px 16px; min-height: 52px; cursor: pointer; touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+button:active { transform: scale(0.97); background: #2f333b; }
+button.big { font-size: 22px; font-weight: 700; min-height: 76px; }
+button.go { background: #1f4d2e; border-color: #2f7a47; }
+button.stop { background: #4d1f1f; border-color: #7a2f2f; }
+button.rec { background: #5a1a1a; border-color: #b33a3a; }
+button.on { background: #4a3a14; border-color: var(--accent); color: var(--accent); }
+input, select, textarea { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 12px; width: 100%; }
+textarea { min-height: 40vh; font-family: inherit; line-height: 1.5; }
+label { display: block; color: var(--dim); font-size: 14px; margin: 12px 0 4px; }
+h2 { margin: 6px 0 12px; font-size: 20px; }
+main { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-color: #3a3e46 var(--bg); -webkit-overflow-scrolling: touch; padding: 14px 16px 24px; }
+nav { display: flex; border-top: 1px solid var(--line); background: var(--panel); padding-bottom: env(safe-area-inset-bottom); }
+nav button { flex: 1; border: 0; border-radius: 0; background: none; color: var(--dim); font-size: 15px; min-height: 58px; }
+nav button.sel { color: var(--accent); font-weight: 700; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > * { flex: 1; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; margin-bottom: 14px; }
+.tempoedit { flex-wrap: nowrap; gap: 6px; } .tempoedit input { flex: 1 1 auto; min-width: 0; } .tempoedit button { flex: 0 0 auto; padding: 6px 12px; }
+.tempo { font-size: 48px; font-weight: 800; color: var(--accent); min-width: 120px; text-align: center; }
+.small { font-size: 14px; color: var(--dim); }
+.lights { display: flex; gap: 10px; justify-content: center; margin: 6px 0 14px; }
+.light { width: 34px; height: 34px; border-radius: 50%; background: #2a2d33; border: 2px solid #3a3e46; transition: background 60ms; }
+.light.on { background: var(--good); border-color: var(--good); box-shadow: 0 0 18px var(--good); }
+.light.one.on { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 22px var(--accent); }
+.light.count.on { background: var(--blue); border-color: var(--blue); box-shadow: 0 0 22px var(--blue); }
+.banner { display: none; background: #5a1a1a; border: 2px solid var(--bad); border-radius: var(--r); padding: 12px; text-align: center;
+  font-size: 24px; font-weight: 800; margin-bottom: 14px; }
+.banner.show { display: block; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.75; } }
+.list > button { display: block; width: 100%; text-align: left; margin-bottom: 8px; }
+.list .row { flex-wrap: nowrap; }
+.list .row > button { flex: 0 0 auto; }
+.list .row > button:first-child { flex: 1 1 auto; text-align: left; }
+.starbtn { font-size: 28px; min-width: 64px; }
+.editbtn { min-width: 64px; flex: 0 0 auto !important; font-size: 15px; }
+.gridwrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; }
+.bgrid { border-collapse: collapse; }
+.bgrid th { position: sticky; left: 0; background: var(--panel); color: var(--dim); font-size: 13px; font-weight: 600; text-align: left; padding: 0 8px; white-space: nowrap; z-index: 1; }
+.bgrid th.used { color: var(--text); }
+.bgrid td { padding: 2px; }
+.bgrid td.beat1 { padding-left: 8px; }
+.cell { width: 38px; height: 38px; min-height: 38px; padding: 0; border-radius: 7px; font-weight: 800; font-size: 17px; background: var(--panel2); color: var(--dim); }
+.cell.down { background: #2c3038; }
+.cell.vX { background: var(--accent); color: #1a1205; border-color: var(--accent); }
+.cell.vx { background: #c98a2e; color: #1a1205; border-color: #c98a2e; }
+.cell.vo { background: #6e5426; color: var(--text); }
+.cell.vg { background: #3d3424; color: var(--dim); }
+.partrow button { flex: 1 1 auto; min-width: 0; padding: 10px 12px; font-size: 15px; }
+.legend { font-size: 13px; color: var(--dim); margin-top: 6px; }
+.list button.cur { border-color: var(--accent); color: var(--accent); }
+.fam { color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; margin: 16px 0 8px; }
+.star { color: var(--accent); }
+#lyrics { white-space: pre-wrap; font-size: 30px; line-height: 1.45; padding-bottom: 60vh; }
+.lyricbar { position: sticky; top: -14px; background: var(--bg); padding: 8px 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; }
+.lyricbar button { min-height: 46px; padding: 8px 10px; flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+.songtitle { font-size: 24px; font-weight: 800; }
+.hide { display: none !important; }
+.problem { color: var(--bad); font-weight: 700; text-align: center; margin: 8px 0; }
+.toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: #2a2d33; border: 1px solid var(--line);
+  border-radius: 12px; padding: 10px 16px; opacity: 0; transition: opacity 200ms; pointer-events: none; }
+.toast.show { opacity: 1; }
+#pair { max-width: 420px; margin: 12vh auto; text-align: center; }
+#pair input { font-size: 34px; text-align: center; letter-spacing: 0.3em; margin: 16px 0; }
+/* the transport dock: on every tab but Play, so the beat and the loop buttons are always in reach */
+.dock { background: var(--panel); border-top: 1px solid var(--line); padding: 8px 12px 10px; }
+.dock .dockinfo { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; min-height: 26px; }
+.dock .lights { margin: 0; gap: 7px; justify-content: flex-start; }
+.dock .light { width: 20px; height: 20px; }
+.dock .dockstate { flex: 1; min-width: 0; font-size: 17px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dock .docknudge { min-height: 40px; min-width: 44px; padding: 2px 10px; font-size: 22px; font-weight: 700; }
+.dock .docktempo { font-size: 22px; font-weight: 800; color: var(--accent); min-height: 0; padding: 2px 10px; border-radius: 10px; }
+.dock .dockloop { color: #fff; background: #8a1f1f; border-radius: 8px; padding: 2px 10px; font-weight: 800; white-space: nowrap; animation: pulse 1s infinite; }
+.dock .dockbtns { display: flex; gap: 8px; }
+.dock .dockbtns button { flex: 1; min-width: 0; min-height: 56px; padding: 6px 4px; font-size: 18px; font-weight: 700; }
+@media (max-width: 500px) { .dock .dockbtns button { font-size: 15px; } }
+button.paused { background: #24304a; border-color: var(--blue); color: var(--blue); }
+/* the count-in, big enough to read from across the stage */
+#countin { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 20;
+  font-size: min(42vh, 60vw); font-weight: 900; color: var(--blue); opacity: 0; text-shadow: 0 0 40px rgba(0,0,0,0.9); }
+#countin.show { opacity: 0.85; }
+/* lost the connection: say so, loud, and keep trying */
+#offline { display: none; background: var(--bad); color: #1a0505; text-align: center; font-weight: 800; padding: 10px; font-size: 18px; }
+#offline.show { display: block; }
+body.offline .dock, body.offline main { opacity: 0.55; }
+/* hold to confirm (Clear, Stop Now): a tap alone does nothing, so a stray tap can't wipe a loop */
+button.hold { position: relative; overflow: hidden; }
+button.hold::after { content: ""; position: absolute; left: 0; bottom: 0; height: 5px; width: 0; background: var(--accent); }
+button.hold.holding::after { width: 100%; transition: width var(--hold, 500ms) linear; }
+.holdnote { font-size: 12px; color: var(--dim); display: block; font-weight: 400; }
+/* lyrics: section names stand out */
+#lyrics .sec { color: var(--accent); font-weight: 800; font-size: 0.8em; letter-spacing: 0.04em; }
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; }
+.switch select { width: auto; }
+/* ---- the Play tab, built to be read at arm's length on a stage */
+.strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 8px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 12px; font-size: 14px; font-weight: 700;
+  background: var(--panel2); border: 1px solid var(--line); color: var(--dim); white-space: nowrap; }
+.pill.ok { color: var(--good); border-color: #2f7a47; background: #14261a; }
+.pill.off { color: var(--bad); border-color: #7a2f2f; background: #2a1414; }
+.pill .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.strip .beatname { flex: 1 1 140px; font-size: 14px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tempocard { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.tempocard .tempo { flex: 1; line-height: 1; }
+.tempocard .tempo small { display: block; font-size: 12px; font-weight: 700; color: var(--dim); letter-spacing: 0.08em; margin-top: 4px; }
+.tempocard > button { min-width: 64px; font-size: 28px; font-weight: 700; }
+.tempotools { display: flex; gap: 8px; margin-bottom: 10px; }
+.tempotools button { flex: 1; min-height: 44px; padding: 6px; font-size: 16px; }
+.hero { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px 8px; margin-bottom: 10px; text-align: center; }
+.hero .section { font-size: 40px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.05; }
+.hero .section.stopped { color: var(--dim); font-size: 30px; }
+.hero .section.ending { color: var(--bad); }
+.hero .section.pause { color: var(--blue); }
+.hero .where { font-size: 17px; color: var(--dim); min-height: 24px; }
+.hero .where b { color: var(--text); }
+.hero .lights { margin: 8px 0 4px; }
+.hero .light { width: 40px; height: 40px; }
+.hero .coming { font-size: 17px; font-weight: 700; color: var(--accent); min-height: 22px; }
+.transport { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.transport button.big { min-height: 80px; font-size: 26px; }
+.moves { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.moves button { min-height: 56px; padding: 6px 4px; font-size: 16px; font-weight: 700; }
+.hint { font-size: 13px; font-weight: 600; display: block; opacity: 0.85; }
+/* the two loop tracks: big tiles, A blue and B violet everywhere, saying what each is doing */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+.tile { position: relative; text-align: left; min-height: 104px; padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between;
+  border-width: 2px; }
+.tile .letter { font-size: 40px; font-weight: 900; line-height: 1; }
+.tile .role { position: absolute; top: 12px; right: 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+.tile .tstate { font-size: 15px; font-weight: 800; letter-spacing: 0.03em; }
+.tile.ta .letter { color: var(--a); } .tile.tb .letter { color: var(--b); }
+.tile.ta.playing { background: var(--a-bg); border-color: var(--a); box-shadow: 0 0 0 1px var(--a) inset, 0 0 22px rgba(92,200,255,0.25); }
+.tile.tb.playing { background: var(--b-bg); border-color: var(--b); box-shadow: 0 0 0 1px var(--b) inset, 0 0 22px rgba(210,155,255,0.25); }
+.tile.playing .tstate { color: var(--text); }
+.tile.next { border-style: dashed; animation: pulse 0.9s infinite; }
+.tile.ta.next { border-color: var(--a); } .tile.tb.next { border-color: var(--b); }
+.tile.empty .tstate { color: var(--dim); font-weight: 600; }
+.tile.recording { border-color: var(--bad); background: #3a1414; animation: pulse 1s infinite; }
+.tile.recording .tstate { color: #ffb0b0; }
+button.idle { opacity: 0.45; }
+.tile.target::after { content: "REC HERE"; position: absolute; right: 10px; top: 36px; font-size: 11px; font-weight: 900; letter-spacing: 0.08em;
+  color: #fff; background: #b33a3a; border-radius: 6px; padding: 2px 6px; }
+.trackhint { font-size: 14px; color: var(--dim); margin: 0 0 10px; min-height: 19px; }
+button.recbig { width: 100%; min-height: 76px; font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.seg button { flex: 1; border: 0; border-radius: 0; min-height: 48px; padding: 6px; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: #4a3a14; color: var(--accent); font-weight: 800; }
+/* the dock's track buttons */
+.dock .dockbtns button.da { color: var(--a); } .dock .dockbtns button.db { color: var(--b); }
+.dock .dockbtns button.da.playing { background: var(--a-bg); border-color: var(--a); }
+.dock .dockbtns button.db.playing { background: var(--b-bg); border-color: var(--b); }
+.dock .dockbtns button.next { border-style: dashed; animation: pulse 0.9s infinite; }
+nav button svg { display: block; margin: 0 auto 2px; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+nav button { font-size: 13px; padding: 6px 0; }
+/* an iPad on its side (or the laptop window): the Play tab in two columns */
+@media (min-width: 900px) {
+  .playgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+}
+/* a phone on its side: two columns, a bit tighter */
+@media (orientation: landscape) and (max-height: 520px) {
+  .playgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .hero .section { font-size: 30px; } .hero .light { width: 32px; height: 32px; }
+  .transport button.big { min-height: 64px; font-size: 22px; } .tile { min-height: 80px; } .tile .letter { font-size: 32px; }
+  nav button { min-height: 46px; } nav button svg { display: none; }
+}
+@media (max-width: 360px) { .hero .section { font-size: 32px; } .moves button { font-size: 14px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  button:active { transform: none; }
+}
+</style>
+</head>
+<body>
+<div id="offline" role="alert">Lost touch with Barline. Trying again&hellip;</div>
+<div id="countin" aria-hidden="true"></div>
+<video id="awake" muted playsinline loop preload="auto" style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none" aria-hidden="true"></video>
+<div id="pair" class="hide">
+  <h2>Barline</h2>
+  <p class="small">Type the 6-digit code shown on the Barline screen. You only do this once on this device.</p>
+  <input id="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+  <button class="big go" style="width:100%" onclick="pair()">Connect</button>
+  <p id="pairerr" class="problem"></p>
+</div>
+
+<main id="app" class="hide">
+  <!-- PLAY -->
+  <section id="tab-play">
+   <div class="playgrid">
+   <div>
+    <div class="strip">
+      <span class="pill" id="conn" role="status"><span class="dot"></span><span id="conntext">Connecting…</span></span>
+      <span class="pill" id="modepill"></span>
+      <div class="beatname" id="beatname"></div>
+    </div>
+    <div id="problem" class="problem" role="alert"></div>
+    <div class="tempocard">
+      <button onclick="act('tempo_down')" aria-label="Slower">&minus;</button>
+      <div class="tempo" id="bpmbox"><span id="bpm">--</span><small>BPM</small></div>
+      <button onclick="act('tempo_up')" aria-label="Faster">+</button>
+    </div>
+    <div class="tempotools">
+      <button onclick="tapTempo()" id="tapbtn">Tap tempo</button>
+      <button onclick="act('tempo_half')">&frac12; speed</button>
+      <button onclick="act('tempo_double')">&times;2 speed</button>
+    </div>
+    <div class="hero" aria-live="polite">
+      <div class="section stopped" id="section">Stopped</div>
+      <div class="where" id="where"></div>
+      <div class="lights" id="lights" aria-hidden="true"></div>
+      <div class="coming" id="coming"></div>
+    </div>
+    <div class="banner" id="loopbanner" role="status"></div>
+    <div class="transport">
+      <button class="big go" id="playbtn" onclick="act('play')">Start</button>
+      <button class="big" onclick="act('next_part')" id="nextbtn">Next Part<span class="hint" id="nexthint"></span></button>
+    </div>
+    <div class="moves">
+      <button onclick="dockPause()" id="pausebtn"><span id="pauselabel">Pause</span><span class="hint">back on 1</span></button>
+      <button onclick="act('clap')" id="clapbtn">Clap along<span class="hint">drums out</span></button>
+      <button class="stop hold" data-hold="stop" data-ms="400">Stop Now<span class="hint">hold</span></button>
+    </div>
+   </div>
+   <div>
+    <div class="card">
+      <h2>Loops</h2>
+      <div class="tiles">
+        <button class="tile ta" onclick="pickTrack('A')" id="tracka" aria-label="Track A"><span class="letter">A</span><span class="role">verse</span><span class="tstate" id="tsa"></span></button>
+        <button class="tile tb" onclick="pickTrack('B')" id="trackb" aria-label="Track B"><span class="letter">B</span><span class="role">chorus</span><span class="tstate" id="tsb"></span></button>
+      </div>
+      <p class="trackhint" id="tracknote"></p>
+      <button class="rec recbig" onclick="act('smart')" id="recbtn">Record</button>
+      <button class="rec" onclick="act('record_ab')" id="recabbtn" style="width:100%;margin-bottom:12px">● Record A → B</button>
+      <div class="row" style="margin-bottom:12px">
+        <button onclick="act('undo')">Undo</button>
+        <button class="hold" data-hold="clear" data-ms="700">Clear<span class="hint">hold</span></button>
+        <button onclick="act('stop_loops')">Stop Loops</button>
+      </div>
+      <label id="barslabel">Loop length</label>
+      <div class="seg" id="bars" role="group" aria-label="Loop length in bars"></div>
+    </div>
+    <div class="card">
+      <h2>Feel</h2>
+      <div class="row" style="margin-bottom:6px">
+        <button id="lockbtn" onclick="act('lock', 'on')">Locked to the grid</button>
+        <button id="humanbtn" onclick="act('lock', 'off')">Human (push / pull)</button>
+      </div>
+      <label>Swing <b id="swingval"></b></label>
+      <div class="row" style="align-items:center">
+        <input type="range" min="0" max="75" step="1" id="swing" oninput="slide('swing', this.value / 100)" style="flex:4">
+        <button onclick="act('swing', -1)" id="swingown" style="flex:0 0 auto">Beat's own</button>
+      </div>
+      <div id="humanfeel">
+      <label>Pocket <b id="pocketval"></b> <span class="small">(pushed &#8592; &#8594; laid back; the kick stays on the beat)</span></label>
+      <input type="range" min="-15" max="15" step="1" id="pocket" oninput="slide('pocket', this.value)">
+      <label>Looseness <b id="looseval"></b> <span class="small">(tight &#8592; &#8594; loose)</span></label>
+      <input type="range" min="0" max="100" step="5" id="loose" oninput="slide('loose', this.value / 100)">
+      </div>
+      <button onclick="act('save_feel')" style="width:100%;margin-top:14px">Save tempo, beat, kit &amp; feel to this song</button>
+    </div>
+   </div>
+   </div>
+  </section>
+
+  <!-- LYRICS -->
+  <section id="tab-lyrics" class="hide">
+    <div class="lyricbar">
+      <button onclick="songStep(-1)" aria-label="Previous song">&#9664; Prev</button>
+      <button onclick="lyricSize(-2)">A&minus;</button>
+      <button onclick="lyricSize(2)">A+</button>
+      <button id="scrollbtn" onclick="toggleScroll()">Auto-scroll</button>
+      <button onclick="scrollSpeed(-1)">Slower</button>
+      <button onclick="scrollSpeed(1)">Faster</button>
+      <button onclick="songStep(1)" aria-label="Next song">Next &#9654;</button>
+    </div>
+    <div class="songtitle" id="lytitle"></div>
+    <div class="small" id="lymeta"></div>
+    <div id="lyrics" onclick="pauseScroll()"></div>
+  </section>
+
+  <!-- SONGS -->
+  <section id="tab-songs" class="hide">
+    <div class="row" style="margin-bottom:10px">
+      <select id="setlist" onchange="pickSetlist(this.value)"></select>
+      <button onclick="newSetlist()" style="flex:0 0 auto">New List</button>
+    </div>
+    <div class="row" style="margin-bottom:14px">
+      <button onclick="editSong('')">+ Song</button>
+      <button onclick="toggleReorder()" id="reorderbtn">Reorder</button>
+      <button onclick="addToList()" id="addbtn">Add Songs</button>
+    </div>
+    <div class="list" id="songlist"></div>
+    <div class="card">
+      <h2>Import from a set list app</h2>
+      <p class="small">In your set list app, export its song database (SQLite) or a spreadsheet (CSV), to Files or iCloud Drive.
+        Choose that .sqlite file here: every song, its lyrics, and your shows (as set lists) come in.
+        Importing again later updates them and keeps the beats you picked. A spreadsheet (CSV) works too.</p>
+      <input type="file" id="importfile" accept=".sqlite,.csv,.txt,.tsv,application/x-sqlite3,application/octet-stream,text/csv,text/plain">
+      <button style="margin-top:10px;width:100%" onclick="importFile()">Import</button>
+    </div>
+  </section>
+
+  <!-- SONG EDITOR -->
+  <section id="tab-edit" class="hide">
+    <h2 id="edittitle">Song</h2>
+    <label>Name</label><input id="e-name">
+    <div class="row">
+      <div><label>Artist</label><input id="e-artist"></div>
+      <div><label>Key</label><input id="e-key"></div>
+    </div>
+    <label>Beat</label><div class="row tempoedit"><select id="e-style"></select><button onclick="editSongBeat()">Edit this beat</button></div>
+    <div class="row">
+      <div><label>Kit</label><select id="e-kit"></select></div>
+      <div><label>Tempo (BPM)</label><div class="row tempoedit"><input id="e-bpm" inputmode="decimal">
+        <button onclick="bpmTimes(0.5)" title="half speed">&frac12;</button><button onclick="bpmTimes(2)" title="double speed">&times;2</button></div></div>
+    </div>
+    <button onclick="usePlaying()" style="width:100%;margin-top:10px">Use what's playing now (tempo, beat, kit &amp; feel)</button>
+    <label>Feel</label>
+    <div class="row">
+      <div><label class="small">Swing</label><select id="e-swing"></select></div>
+      <div><label class="small">Pocket</label><select id="e-pocket"></select></div>
+      <div><label class="small">Looseness</label><select id="e-loose"></select></div>
+      <div><label class="small">Grid</label><select id="e-locked"><option value="-1">As set</option><option value="1">Locked</option><option value="0">Human</option></select></div>
+    </div>
+    <div class="row">
+      <div><label>Loop length (bars)</label><input id="e-bars" inputmode="numeric"></div>
+      <div><label>Track B length (blank = same; Song mode)</label><input id="e-barsb" inputmode="numeric"></div>
+      <div><label>Pedal slot to load (blank = none)</label><input id="e-slot" inputmode="numeric"></div>
+      <div><label>Count-in bars</label><select id="e-count"><option>0</option><option>1</option><option>2</option></select></div>
+    </div>
+    <label>Notes</label><input id="e-notes" placeholder="capo 2, start with the chorus...">
+    <label>Lyrics</label><textarea id="e-lyrics" placeholder="Paste or type the lyrics. Blank lines between verses."></textarea>
+    <div class="row" style="margin-top:14px">
+      <button class="go big" onclick="saveSong()">Save</button>
+      <button onclick="showTab('songs')">Cancel</button>
+      <button class="stop" onclick="deleteSong()" id="delbtn">Delete</button>
+    </div>
+  </section>
+
+  <!-- BEATS -->
+  <section id="tab-beats" class="hide">
+    <button class="previewbtn" onclick="act('preview')" style="width:100%;margin-bottom:10px">Hear on laptop: off</button>
+    <div class="row" style="margin-bottom:10px">
+      <button id="favbtn" class="on" onclick="beatView('fav')">Favorites</button>
+      <button id="allbtn" onclick="beatView('all')">All Beats</button>
+      <button id="kitbtn" onclick="beatView('kits')">Kits</button>
+    </div>
+    <button onclick="editBeat(S.style, '', 'beats')" style="width:100%;margin-bottom:10px">Edit the beat that's on</button>
+    <div class="list" id="beatlist"></div>
+  </section>
+
+  <!-- BEAT EDITOR -->
+  <section id="tab-beatedit" class="hide">
+    <h2 id="be-title">Edit Beat</h2>
+    <div class="small" id="be-about"></div>
+    <label>Name</label><input id="be-name" oninput="beatChanged(false)">
+    <div class="row">
+      <div><label>Time signature</label><select id="be-meter" onchange="setMeter(this.value)"></select></div>
+      <div><label>Swing</label><select id="be-swing" onchange="beatChanged()"><option value="0">Straight</option><option value="0.25">A little (25%)</option><option value="0.5">Half (50%)</option><option value="0.75">Lots (75%)</option></select></div>
+      <div><label>Tempo</label><input id="be-bpm" inputmode="numeric" onchange="beatChanged(false)"></div>
+    </div>
+    <label>Part</label>
+    <div class="row partrow" id="be-parts"></div>
+    <div class="small" id="be-parthelp" style="margin-top:6px"></div>
+    <div class="row" style="margin-top:8px">
+      <button id="be-bars" onclick="beBars()">1 bar</button>
+      <button id="be-copy" onclick="beCopyVerse()">Copy the verse here</button>
+      <button onclick="beClear()">Clear this part</button>
+    </div>
+    <div class="gridwrap"><table class="bgrid" id="be-grid"></table></div>
+    <div class="legend">Tap a square: hit &rarr; accent &rarr; soft &rarr; ghost &rarr; off. The darker columns are the beats.</div>
+    <div class="row" style="margin-top:8px">
+      <select id="be-add" onchange="beAddDrum(this.value)"></select>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="go big" id="be-play" onclick="bePlay()">Play</button>
+    </div>
+    <div class="small" style="margin-top:6px">Play repeats the part you're on (a fill or ending comes after a bar of its groove). It's on the laptop's speakers too (and the pedal, if it's plugged in), until you leave this page.</div>
+    <div class="row" style="margin-top:14px">
+      <button class="go big" onclick="beSave(false)" id="be-save">Save</button>
+      <button onclick="beSave(true)" id="be-saveas">Save as a new beat</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button onclick="beLeave()">Done</button>
+      <button class="stop" onclick="beDelete()" id="be-del">Delete this beat</button>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="tab-settings" class="hide">
+    <div class="card">
+      <h2>The pedal</h2>
+      <label>Pedal mode <span class="small">(Barline sets the pedal to it. Song: tracks A and B take turns; Next Part switches them)</span></label>
+      <div class="row" id="pmodes">
+        <button onclick="act('pedal_mode','single')" data-m="single">Single</button>
+        <button onclick="act('pedal_mode','multi')" data-m="multi">Multi</button>
+        <button onclick="act('pedal_mode','sync')" data-m="sync">Sync</button>
+        <button onclick="act('pedal_mode','song')" data-m="song">Song</button>
+        <button onclick="act('pedal_mode','off')" data-m="off">Not sure</button>
+      </div>
+    </div>
+    <div class="card">
+      <label>Drum volume</label>
+      <input type="range" min="0" max="1.5" step="0.05" id="volume" oninput="act('volume', this.value)">
+      <p class="small">Drums only go to the pedal, unless Hear on laptop is on (it's off every time Barline starts).</p>
+      <div class="row" style="margin-top:14px">
+        <button class="previewbtn" onclick="act('preview')">Hear on laptop: off</button>
+        <button onclick="act('click')" id="clickbtn">Headphone click</button>
+        <button class="stop" onclick="act('panic')">Panic: stop everything</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Network</h2>
+      <label>The page is shown on <span class="small" id="netnow"></span></label>
+      <div class="row" id="netpick">
+        <button onclick="act('network','auto')" data-n="auto">Auto</button>
+        <button onclick="act('network','usb')" data-n="usb">USB router</button>
+        <button onclick="act('network','wifi')" data-n="wifi">Wi-Fi</button>
+        <button onclick="act('network','wired')" data-n="wired">Cable</button>
+      </div>
+      <div class="switch"><span>Only devices on that network</span><button id="netonly" onclick="act('network_only')">Off</button></div>
+      <p class="small">Your own router plugged into the laptop's USB port (a USB network adapter, or the router's USB sharing): put this device on that router's Wi-Fi, no venue Wi-Fi needed. Auto picks it first.</p>
+    </div>
+    <div class="card">
+      <h2>This device</h2>
+      <div class="switch"><span>Keep the screen on</span><button id="awakebtn" onclick="toggleAwake()">On</button></div>
+      <div class="switch"><span>Lyrics auto-scroll starts with the drums</span><button id="withdrumsbtn" onclick="toggleWithDrums()">Off</button></div>
+      <div class="switch"><span>The bottom bar's Pause button</span>
+        <select id="pauselen" onchange="setPauseLen(this.value)">
+          <option value="bar">Pauses a whole bar</option>
+          <option value="half">Pauses half a bar</option>
+        </select></div>
+      <div class="switch"><span>A footswitch or keyboard on this device</span>
+        <select id="keysmode" onchange="setKeysMode(this.value)">
+          <option value="laptop">Works like the laptop's keys</option>
+          <option value="scroll">Scrolls the lyrics</option>
+          <option value="off">Does nothing</option>
+        </select></div>
+      <p class="small" id="keyshelp"></p>
+      <p class="small">For a gig, also set the iPad's own Settings &rarr; Display &amp; Brightness &rarr; Auto-Lock to Never.</p>
+    </div>
+    <div class="card hide" id="localcard">
+      <h2>Barline on this computer</h2>
+      <p id="localpair" class="small"></p>
+      <button class="stop hold" data-hold="quit" data-ms="700" style="width:100%">Quit Barline<span class="holdnote">hold</span></button>
+    </div>
+    <div class="card small">
+      Bookmark this page, or tap Share &rarr; Add to Home Screen to open it like an app.
+      Barline only answers devices on a private network nearby (or only the one picked above), and only after the pairing code.
+      <span id="version"></span>
+      <br>Free software (GPL-3.0). An independent project, not affiliated with any pedal or app maker.
+    </div>
+  </section>
+</main>
+
+<div id="dock" class="dock hide">
+  <div class="dockinfo">
+    <div class="lights" id="docklights"></div>
+    <div class="dockstate" id="dockstate">Stopped</div>
+    <span class="dockloop hide" id="dockloop"></span>
+    <button class="docknudge" onclick="act('tempo_down')" aria-label="Slower">&minus;</button>
+    <button class="docktempo" id="docktempo" onclick="showTab('play')" aria-label="Tempo (opens Play)">--</button>
+    <button class="docknudge" onclick="act('tempo_up')" aria-label="Faster">+</button>
+  </div>
+  <div class="dockbtns">
+    <button class="go" onclick="act('play')" id="dockplay">Start</button>
+    <button onclick="act('next_part')">Next</button>
+    <button class="da" onclick="pickTrack('A')" id="docka" aria-label="Track A">A</button>
+    <button class="db" onclick="pickTrack('B')" id="dockb" aria-label="Track B">B</button>
+    <button class="rec" onclick="act('smart')" id="dockrec">Record</button>
+    <button onclick="dockPause()" id="dockpause">Pause</button>
+  </div>
+</div>
+<nav id="nav" class="hide">
+  <button data-tab="play" class="sel" onclick="showTab('play')"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>Play</button>
+  <button data-tab="lyrics" onclick="showTab('lyrics')"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h10"/></svg>Lyrics</button>
+  <button data-tab="songs" onclick="showTab('songs')"><svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>Songs</button>
+  <button data-tab="beats" onclick="showTab('beats')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Beats</button>
+  <button data-tab="settings" onclick="showTab('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+// this computer's own window comes with its key in the address (#local=...): kept for this window only
+let isLocal = false, token = "";
+try { token = localStorage.getItem("barline-token") || ""; } catch (e) {}
+{
+  const m = /[#&]local=([0-9a-f]{32})/.exec(location.hash);
+  try { if (m) sessionStorage.setItem("barline-local", m[1]); } catch (e) {}
+  let lt = m ? m[1] : ""; try { lt = lt || sessionStorage.getItem("barline-local") || ""; } catch (e) {}
+  if (lt) { isLocal = true; token = lt; }
+  if (m) history.replaceState(null, "", location.pathname);
+}
+const store = {get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
+               set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }};
+let S = {}, L = {styles: [], kits: [], favorites: []}, LIB = {songs: [], setlists: []};
+let tab = "play", beatTab = "fav", reorder = false, adding = false, editing = "";
+let lyricPx = +store.get("barline-lyric", 30), scrolling = false, speed = +store.get("barline-scroll-lpm", 12) || 12;
+let shownSong = "";
+
+const $ = id => document.getElementById(id);
+const h = s => String(s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 2200); }
+
+async function api(path, body) {
+  const opt = {headers: {"X-Barline": token}};
+  if (body !== undefined) {
+    opt.method = "POST";
+    if (body instanceof Blob) {
+      opt.headers["Content-Type"] = "application/octet-stream";
+      opt.body = body;
+    } else {
+      opt.headers["Content-Type"] = "application/x-www-form-urlencoded";
+      opt.body = body instanceof URLSearchParams ? body.toString() : body;
+    }
+  }
+  let r;
+  try { r = await fetch(path, opt); } catch (e) { offline(true); throw e; }
+  offline(false);
+  if (r.status === 401) { showPair(); throw new Error("not paired"); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { toast(j.error || "Something went wrong."); throw new Error(j.error); }
+  return j;
+}
+
+function showPair() {
+  if (isLocal) $("pairerr").textContent = "Barline was restarted: close this window and open Barline again (or type the code).";
+  $("pair").classList.remove("hide"); $("app").classList.add("hide"); $("nav").classList.add("hide"); }
+async function pair() {
+  const code = $("code").value.trim();
+  const r = await fetch("/api/pair", {method: "POST", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body: "code=" + encodeURIComponent(code)});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { $("pairerr").textContent = j.error || "That didn't work."; return; }
+  token = j.token; isLocal = false; store.set("barline-token", token);
+  start();
+}
+
+function act(action, arg) {
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {}   // Android: a tick you can feel (iPhones don't allow it)
+  const b = new URLSearchParams({action, arg: arg === undefined ? "" : String(arg)});
+  return api("/api/act", b).then(poll).catch(() => {});
+}
+// a track tap shows "next bar" at once, before the laptop answers, so a tap never feels lost
+let pending = "", pendingAt = 0;
+function pickTrack(t) {
+  if (S && (S.pedal_mode === "song" || S.pedal_mode === "off") && S.playing_track !== t && !(t === "A" ? S.empty_a : S.empty_b)) {
+    pending = t; pendingAt = Date.now();
+    for (const id of t === "A" ? ["tracka", "docka"] : ["trackb", "dockb"]) $(id).classList.add("next");
+  }
+  act("select", t);
+}
+
+// sliders: send while dragging, at most every 120 ms (and the last value always)
+const slideT = {};
+function slide(action, v) {
+  const st = slideT[action] || (slideT[action] = {t: 0, timer: null});
+  clearTimeout(st.timer);
+  const now = Date.now();
+  if (now - st.t > 120) { st.t = now; act(action, v); }
+  else st.timer = setTimeout(() => { st.t = Date.now(); act(action, v); }, 130);
+}
+
+function showTab(t) {
+  if (tab === "beatedit" && t !== "beatedit" && BE) { act("edit_done", ""); BE = null; }   // left the editor another way
+  tab = t;
+  for (const s of document.querySelectorAll("main > section")) s.classList.toggle("hide", s.id !== "tab-" + t);
+  for (const b of document.querySelectorAll("nav button")) b.classList.toggle("sel", b.dataset.tab === t);
+  if (t === "songs") loadLibrary();
+  if (t === "beats") drawBeats();
+  if (t === "lyrics") drawLyrics(true);
+  if (t === "settings") drawSettings();
+  $("dock").classList.toggle("hide", t === "play" || t === "beatedit" || t === "edit");
+}
+
+// ---- the live state
+let fails = 0, lastOk = 0;
+function offline(bad) {
+  if (bad) fails++; else { fails = 0; lastOk = Date.now(); }
+  const off = fails >= 3;
+  $("offline").classList.toggle("show", off);
+  document.body.classList.toggle("offline", off);
+}
+// the beat lights move on their own between answers (from the beat, how far into it, and the tempo), so
+// they stay on time however the Wi-Fi is doing; each answer puts them right again
+let beatSync = {at: 0, pos: 0, beats: 4, bpm: 100, grid: false, counting: false};
+function makeLights(el, n) {
+  if (el.children.length === n) return;
+  el.innerHTML = "";
+  for (let i = 0; i < n; i++) { const d = document.createElement("div"); d.className = "light" + (i === 0 ? " one" : ""); el.appendChild(d); }
+}
+let pollTimer = null, prevPlaying = false;
+async function poll() {
+  clearTimeout(pollTimer);
+  try { S = await api("/api/state"); } catch (e) { pollTimer = setTimeout(poll, fails > 3 ? 1000 : 300); return; }
+  pollTimer = setTimeout(poll, document.hidden ? 1000 : 120);
+  beatSync = {at: performance.now(), pos: S.grid ? (S.beat - 1) + (S.phase || 0) : 0, beats: S.beats, bpm: S.bpmf || S.bpm, grid: S.grid, counting: S.counting};
+  $("bpm").textContent = S.bpm;
+  $("docktempo").textContent = S.bpm + (innerWidth < 500 ? "" : " BPM");
+  $("beatname").textContent = S.style_name + "  ·  " + S.kit_name;
+  $("problem").textContent = S.problem || "";
+  // what's connected, said plainly: a musician should never wonder whether the pedal is listening
+  $("conn").className = "pill " + (S.pedal_ok ? "ok" : "off");
+  $("conntext").textContent = S.pedal_ok ? "Pedal connected" : "No pedal" + (S.preview ? " · drums on laptop" : " · drums silent");
+  $("conn").title = S.connection || "";
+  const songish = S.pedal_mode === "song" || S.pedal_mode === "off";
+  $("modepill").textContent = S.pedal_mode === "off" ? "Song mode (not set)" : S.pedal_mode[0].toUpperCase() + S.pedal_mode.slice(1) + " mode";
+  makeLights($("lights"), S.beats);
+  makeLights($("docklights"), S.beats);
+  // the big part name, and where we are
+  const sec = $("section");
+  let big = !S.grid ? "Stopped" : S.counting ? "Count-in" : !S.playing ? "Loops only" : S.ending ? "Ending" : S.pause === 2 ? "Pause" : S.clap_now ? "Clap along" : S.section;
+  sec.textContent = big;
+  sec.className = "section" + (!S.grid ? " stopped" : S.ending ? " ending" : S.pause === 2 || S.counting ? " pause" : "");
+  $("where").innerHTML = S.grid ? "bar <b>" + S.bar + "</b>" + (S.playing_track ? "  ·  loop <b>" + S.playing_track + "</b>" : "") : (S.playing_track ? "loop <b>" + S.playing_track + "</b> on the pedal" : "");
+  let coming = "";
+  if (S.playing && S.next) coming = "Fill → " + S.next;
+  if (S.next_track === "stop") coming = "Loops stop on the next bar";
+  else if (S.next_track) coming += (coming ? "  ·  " : "") + "Loop " + S.next_track + " next bar";
+  if (S.playing && S.pause === 1) coming = "Pause coming";
+  if (S.playing && S.clapping && !S.clap_now) coming = "Claps from the next bar";
+  if (S.playing && S.clap_now && !S.clapping) coming = "Drums back next bar";
+  $("coming").textContent = coming;
+  let st = !S.grid ? "Stopped" : S.counting ? "Counting in…" : !S.playing ? "Keeping time for the loop" : S.ending ? "Ending" : S.pause === 2 ? "PAUSE" : S.clap_now ? "Clap along" : S.section;
+  if (S.grid) st += " · bar " + S.bar;
+  $("dockstate").textContent = (S.pedal_ok ? "" : "No pedal · ") + st;
+  const lb = $("loopbanner");
+  lb.textContent = S.loop ? "● " + S.loop : "";
+  lb.classList.toggle("show", !!S.loop);
+  $("dockloop").textContent = S.loop ? "● " + S.loop : "";
+  $("dockloop").classList.toggle("hide", !S.loop);
+  const running = S.playing && !S.ending;
+  for (const id of ["playbtn", "dockplay"]) {
+    $(id).textContent = running ? "End" : "Start";
+    $(id).className = (id === "playbtn" ? "big " : "") + (running ? "stop" : "go");
+  }
+  // the drums just started: the lyrics can start scrolling with them
+  if (S.playing && !prevPlaying && withDrums && tab === "lyrics" && !scrolling && lyricSong && lyricSong.lyrics) toggleScroll();
+  prevPlaying = S.playing;
+  for (const id of ["clapbtn", "dockclap"]) if ($(id)) { $(id).classList.toggle("on", !!S.clapping); $(id).setAttribute("aria-pressed", !!S.clapping); }
+  for (const id of ["pausebtn", "dockpause"]) $(id).classList.toggle("paused", S.pause > 0);
+  for (const id of ["nextbtn", "pausebtn", "clapbtn"]) $(id).classList.toggle("idle", !S.playing);
+  $("pauselabel").textContent = pauseLen === "half" ? "Pause ½ bar" : "Pause 1 bar";
+  $("dockpause").textContent = pauseLen === "half" ? "Pause ½" : "Pause";
+  // Next Part: in Song mode it switches the loop too, so say which one comes in
+  $("nexthint").textContent = !S.playing ? "" : (S.section === "Verse" ? "→ chorus" : "→ verse") + (songish && S.playing_track && (S.playing_track === "A" ? S.has_b : S.has_a) ? " · loop " + (S.playing_track === "A" ? "B" : "A") : "");
+  // the loop tracks
+  const full = S.track === "A" ? S.has_a : S.has_b;
+  const bars = S.bars + (S.bars === 1 ? " bar" : " bars");
+  $("recbtn").textContent = (full ? "● Layer on " : "● Record ") + S.track + "  ·  " + bars;
+  $("dockrec").textContent = (full ? "Layer " : "Rec ") + S.track;
+  // one press, both loops: A, then B straight on, then A plays (only for new loops; not in Single mode)
+  const abOk = S.pedal_mode !== "single" && !S.has_a && !S.has_b && !S.loop;
+  $("recabbtn").classList.toggle("hide", !abOk);
+  $("recabbtn").textContent = `● Record A (${S.bars_a}) → B (${S.bars_b})` + (songish ? ", then A plays" : "");
+  $("barslabel").textContent = "Loop length for track " + S.track + (songish ? "  (A " + S.bars_a + " · B " + S.bars_b + ")" : "");
+  for (const t of ["A", "B"]) {
+    const tile = $(t === "A" ? "tracka" : "trackb"), dk = $(t === "A" ? "docka" : "dockb");
+    const has = t === "A" ? S.has_a : S.has_b, empty = t === "A" ? S.empty_a : S.empty_b;
+    const playing = S.playing_track === t, next = S.next_track === t || (pending === t && Date.now() - pendingAt < 1500);
+    if (S.next_track || S.playing_track === pending) pending = "";
+    const rec = S.loop && new RegExp("^(Recording|Overdub(bing)?) " + t + "\\b").test(S.loop);
+    const state = rec ? "● " + (/^Overdub/.test(S.loop) ? "LAYERING" : "RECORDING") : next ? "NEXT BAR" : playing ? "▶ PLAYING" : has ? "Ready" : empty ? "Empty" : songish ? "Tap to play" : "";
+    $(t === "A" ? "tsa" : "tsb").textContent = state;
+    tile.classList.toggle("playing", playing && !next && !rec);
+    tile.classList.toggle("recording", !!rec);
+    tile.classList.toggle("next", next);
+    tile.classList.toggle("empty", !!empty && !playing);
+    tile.classList.toggle("target", S.track === t && (!songish || !has));
+    tile.setAttribute("aria-pressed", S.track === t);
+    tile.disabled = t === "B" && S.pedal_mode === "single";
+    tile.setAttribute("aria-label", "Track " + t + ": " + state);
+    dk.classList.toggle("playing", playing && !next);
+    dk.classList.toggle("next", next);
+    dk.disabled = tile.disabled;
+  }
+  $("tracknote").textContent = S.pedal_mode === "single" ? "Single mode: one track." : songish ? "Tap a track to switch to it on the next bar. Next Part switches too." : "Tap a track to record on it.";
+  [...$("pmodes").children].forEach(b => b.classList.toggle("on", b.dataset.m === (S.pedal_mode || "off")));
+  [...$("netpick").children].forEach(b => b.classList.toggle("on", b.dataset.n === (S.network || "auto")));
+  $("netnow").textContent = S.network_ip ? `${S.network_name}, ${S.network_ip}` : S.network_name || "";
+  $("netonly").textContent = S.network_only ? "On" : "Off";
+  $("netonly").classList.toggle("on", !!S.network_only);
+  $("clickbtn").classList.toggle("on", S.click);
+  for (const b of document.querySelectorAll(".previewbtn")) {
+    b.textContent = S.preview ? "Hear on laptop: ON (tap to turn off)" : "Hear on laptop: off";
+    b.classList.toggle("rec", S.preview);
+  }
+  if (document.activeElement !== $("volume")) $("volume").value = S.volume;
+  const own = S.swing < 0, sw = own ? S.style_swing : S.swing;
+  if (document.activeElement !== $("swing")) $("swing").value = Math.round(sw * 100);
+  $("swingval").textContent = Math.round(sw * 100) + "%" + (own ? " (the beat's own)" : "");
+  $("swingown").classList.toggle("on", own);
+  if (document.activeElement !== $("pocket")) $("pocket").value = S.pocket;
+  const p = Math.round(S.pocket);
+  $("pocketval").textContent = p === 0 ? "on the beat" : p > 0 ? `laid back ${p} ms` : `pushed ${-p} ms`;
+  if (document.activeElement !== $("loose")) $("loose").value = Math.round(S.loose * 100);
+  $("looseval").textContent = Math.round(S.loose * 100) + "%";
+  $("lockbtn").classList.toggle("on", S.locked);
+  $("humanbtn").classList.toggle("on", !S.locked);
+  $("humanfeel").style.opacity = S.locked ? 0.45 : 1;
+  const barsEl = $("bars");
+  if (!barsEl.children.length) for (const n of [1, 2, 4, 8, 16]) { const b = document.createElement("button"); b.textContent = n; b.onclick = () => act("bars", n); barsEl.appendChild(b); }
+  [...barsEl.children].forEach(b => { const on = +b.textContent === S.bars; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+  if (S.song_id !== shownSong) drawLyrics(true);
+}
+// every frame: the lights and the count-in, from the last answer moved on by the time since
+function drawBeat(t) {
+  const b = beatSync;
+  let beat = 0, frac = 0;
+  if (b.grid && Date.now() - lastOk < 1500) {
+    const ahead = Math.min(1.5, (t - b.at) / 1000 * b.bpm / 60);   // never guess more than a beat and a half ahead
+    const pos = b.pos + ahead;
+    beat = Math.floor(pos) % b.beats + 1;
+    frac = pos - Math.floor(pos);
+  }
+  for (const el of [$("lights"), $("docklights")])
+    [...el.children].forEach((d, i) => { d.classList.toggle("on", beat === i + 1 && frac < 0.55); d.classList.toggle("count", b.counting); });
+  const ci = $("countin");
+  const show = b.counting && beat > 0;
+  if (show) ci.textContent = beat;
+  ci.classList.toggle("show", show && frac < 0.7);
+}
+
+// tap tempo, timed here (the Wi-Fi's delays would throw off taps timed at the laptop)
+let taps = [];
+function tapTempo() {
+  const now = performance.now();
+  if (taps.length && now - taps[taps.length - 1] > 2000) taps = [];
+  taps.push(now);
+  if (taps.length > 5) taps.shift();
+  if (taps.length < 2) { toast("Keep tapping…"); return; }
+  const gaps = taps.slice(1).map((x, i) => x - taps[i]);
+  const bpm = Math.round(60000 / (gaps.reduce((a, b) => a + b) / gaps.length));
+  if (bpm >= 30 && bpm <= 300) { act("tempo", bpm); toast("Tapped: " + bpm + " BPM"); }
+}
+
+// hold to confirm: Clear, Stop Now, Quit
+let holdsReady = false;
+function setupHolds() {
+  if (holdsReady) return;
+  holdsReady = true;
+  for (const b of document.querySelectorAll("button.hold")) {
+    const ms = +b.dataset.ms || 500;
+    b.style.setProperty("--hold", ms + "ms");
+    let timer = null;
+    const go = e => {
+      e.preventDefault();
+      b.classList.add("holding");
+      timer = setTimeout(() => { timer = null; b.classList.remove("holding"); held(b.dataset.hold); }, ms);
+    };
+    const cancel = () => {
+      if (timer) { clearTimeout(timer); timer = null; toast("Hold it down to " + (b.dataset.hold === "stop" ? "stop the drums" : b.dataset.hold === "quit" ? "quit" : "clear the loop")); }
+      b.classList.remove("holding");
+    };
+    b.addEventListener("pointerdown", go);
+    b.addEventListener("pointerup", cancel);
+    b.addEventListener("pointerleave", cancel);
+    b.addEventListener("pointercancel", cancel);
+    b.addEventListener("contextmenu", e => e.preventDefault());
+  }
+}
+function held(what) {
+  if (what === "quit") { quitting = true; act("quit").then(() => { document.body.innerHTML = '<p style="padding:40px;font-size:22px">Barline has quit. You can close this window.</p>'; }); return; }
+  act(what);
+}
+
+// switching songs while the drums play takes a second tap, so a stray one can't change the tempo mid-song
+let switchArmed = 0;
+function okToSwitch() {
+  if (!(S.playing && !S.ending)) return true;
+  if (Date.now() - switchArmed < 3000) { switchArmed = 0; return true; }
+  switchArmed = Date.now();
+  toast("The drums are playing. Tap again to switch songs.");
+  return false;
+}
+
+// ---- lyrics
+let lyricSong = null;
+async function drawLyrics(force) {
+  if (!force && lyricSong) return;
+  shownSong = S.song_id || "";
+  if (!shownSong) { $("lytitle").textContent = "No song picked"; $("lymeta").textContent = "Pick one on the Songs tab."; $("lyrics").textContent = ""; return; }
+  try { lyricSong = await api("/api/song?id=" + encodeURIComponent(shownSong)); } catch (e) { return; }
+  $("lytitle").textContent = lyricSong.name;
+  $("lymeta").textContent = [lyricSong.artist, lyricSong.key && "key " + lyricSong.key, lyricSong.bpm + " BPM", lyricSong.notes].filter(Boolean).join("  ·  ");
+  drawLyricText(lyricSong.lyrics || "(No lyrics yet: add them on the Songs tab.)");
+  speed = +store.get("barline-scroll-" + shownSong, store.get("barline-scroll-lpm", 12)) || 12;
+  $("lyrics").style.fontSize = lyricPx + "px";
+  document.querySelector("main").scrollTop = 0; scrollPos = 0;
+}
+// lines like "Chorus", "[Verse 2]" or "Bridge:" stand out
+const SECTION = /^\s*[\[(]?\s*(intro|verse|pre-?chorus|chorus|bridge|outro|tag|solo|interlude|instrumental|break|ending|coda|refrain|hook)\b[^\n]{0,20}?[\])]?\s*:?\s*$/i;
+function drawLyricText(text) {
+  const el = $("lyrics");
+  el.innerHTML = text.split("\n").map(l => SECTION.test(l) ? `<span class="sec">${h(l.trim())}</span>` : h(l)).join("\n");
+}
+function lyricSize(d) { lyricPx = Math.max(16, Math.min(72, lyricPx + d)); store.set("barline-lyric", lyricPx); $("lyrics").style.fontSize = lyricPx + "px"; }
+function songStep(d) { const n = S.songs ? S.songs.length : 0; if (!n || !okToSwitch()) return; let i = S.song + d; if (S.song < 0) i = d > 0 ? 0 : n - 1; i = Math.max(0, Math.min(n - 1, i)); act("song", i); }
+// Auto-scroll: "speed" is lines a minute, so a bigger text size doesn't change the pace. The exact
+// position is kept here: the iPad rounds scrollTop to whole pixels, so adding a fraction of a pixel
+// each frame would never move (or, at higher speeds, jump a pixel every frame: much too fast).
+let scrollPos = 0;
+function toggleScroll() {
+  scrolling = !scrolling; $("scrollbtn").classList.toggle("on", scrolling);
+  scrollPos = document.querySelector("main").scrollTop;
+  if (scrolling) toast("Auto-scroll: " + speed + " lines a minute (tap the lyrics to stop)");
+}
+function pauseScroll() { if (scrolling) toggleScroll(); }
+function scrollSpeed(d) {
+  speed = Math.max(2, Math.min(60, speed + d * (speed >= 20 ? 4 : 2)));
+  store.set("barline-scroll-lpm", speed);
+  if (shownSong) store.set("barline-scroll-" + shownSong, speed);   // each song remembers its own
+  toast("Scroll speed: " + speed + " lines a minute" + (shownSong ? " (for this song)" : ""));
+}
+let lastT = 0;
+function tick(t) {
+  drawBeat(t);
+  const m = document.querySelector("main");
+  if (scrolling && tab === "lyrics" && lastT) {
+    // you dragged it yourself: carry on from where you left it
+    if (Math.abs(m.scrollTop - Math.round(scrollPos)) > 2) scrollPos = m.scrollTop;
+    const line = lyricPx * 1.45, dt = Math.min(0.1, (t - lastT) / 1000);
+    scrollPos = Math.max(0, Math.min(scrollPos + speed * line / 60 * dt, m.scrollHeight - m.clientHeight));
+    m.scrollTop = Math.round(scrollPos);
+  }
+  lastT = t; requestAnimationFrame(tick);
+}
+
+// ---- the beat editor
+const METERS = [["4/4", 4, 16], ["4/4 shuffle", 4, 12], ["3/4", 3, 12], ["6/8", 3, 12], ["12/8", 4, 12], ["5/4", 5, 20], ["7/4", 7, 28]];
+const SHOWN = [36, 38, 37, 42, 46, 44, 49, 51, 43, 45, 48];   // always listed: kick, snare, side stick, hats, crash, ride, toms
+let BE = null;   // {id, name, meter, quarters, steps, swing, bpm, user, parts: {verse: {bars, hits}}, drums, extra: [notes], part, song, back}
+let beTimer = null;
+
+async function editBeat(id, song, back) {
+  let b;
+  try { b = await api("/api/beat?id=" + encodeURIComponent(id || S.style || "rock")); } catch (e) { return; }
+  BE = {...b, part: "verse", song: song || "", back: back || "beats", dirty: false, extra: []};
+  BE.split = !samePart(b.parts.fill, b.parts["fill-to-verse"]);
+  if (!b.user) { BE.name = "My " + b.name; BE.dirty = true; }
+  $("be-title").textContent = b.user ? "Edit Beat" : "New Beat (from " + b.name + ")";
+  $("be-about").textContent = b.user ? "One of your beats: Save keeps your changes in it." : "A built-in beat: Save keeps your changes as a new beat of yours (the built-in one stays as it is).";
+  $("be-name").value = BE.name;
+  $("be-meter").innerHTML = METERS.map(m => `<option>${m[0]}</option>`).join("") + (METERS.some(m => m[0] === b.meter) ? "" : `<option>${h(b.meter)}</option>`);
+  $("be-meter").value = b.meter;
+  const sw = String(b.swing);
+  if (![...$("be-swing").options].some(o => o.value === sw)) $("be-swing").insertAdjacentHTML("beforeend", `<option value="${sw}">${Math.round(b.swing * 100)}%</option>`);
+  $("be-swing").value = sw;
+  $("be-bpm").value = b.bpm;
+  $("be-del").classList.toggle("hide", !b.user);
+  $("be-saveas").classList.toggle("hide", !b.user);
+  $("be-save").textContent = song ? "Save, and use it for this song" : "Save";
+  $("be-play").textContent = "Play";
+  showTab("beatedit");
+  drawBeatGrid();
+  bePreview(true);
+}
+// the parts, by their .beat names
+const PARTS = [["verse", "Verse", "The main groove."],
+  ["chorus", "Chorus", "The bigger groove for the chorus."],
+  ["fill", "Fill to chorus", "Plays (for a bar or two) when you tap Next Part in a verse, then the chorus comes in with a crash."],
+  ["fill-to-verse", "Fill to verse", "Plays when you tap Next Part in a chorus, going back to the verse. Until you change it, it's the same as the fill to the chorus."],
+  ["intro", "Count-in", "What the drums play to count you in, before the beat starts."],
+  ["ending", "Ending", "The last bar (or two) when you tap End. Clear it to just stop."],
+  ["clap", "Clap along", "Plays instead of the drums while Clap along is on. It starts as hand claps on the backbeat."]];
+function samePart(a, b) { return a && b && a.bars === b.bars && JSON.stringify([...a.hits].sort()) === JSON.stringify([...b.hits].sort()); }
+// a change to a part: the fill back to the verse follows the fill to the chorus until it's changed itself
+function partChanged() {
+  if (BE.part === "fill-to-verse") BE.split = true;
+  if (BE.part === "fill" && !BE.split) BE.parts["fill-to-verse"] = JSON.parse(JSON.stringify(BE.parts.fill));
+}
+function beHits() { return BE.parts[BE.part].hits; }
+function beVel(step, note) { const x = beHits().find(t => t[0] === step && t[1] === note); return x ? x[2] : 0; }
+function velClass(v) { return v >= 115 ? "X" : v >= 88 ? "x" : v >= 58 ? "o" : "g"; }
+function drawBeatGrid() {
+  $("be-parts").innerHTML = PARTS.map(([k, label]) => `<button class="${BE.part === k ? "on" : ""}" onclick="bePart('${k}')">${label}</button>`).join("");
+  $("be-parthelp").textContent = (PARTS.find(x => x[0] === BE.part) || [, , ""])[2];
+  const part = BE.parts[BE.part], cols = BE.steps * part.bars, per = BE.steps / BE.quarters;
+  $("be-bars").textContent = part.bars === 2 ? "2 bars (tap for 1)" : "1 bar (tap for 2)";
+  $("be-copy").classList.toggle("hide", BE.part === "verse");
+  const used = new Set();
+  for (const p of Object.values(BE.parts)) for (const t of p.hits) used.add(t[1]);
+  const rows = BE.drums.filter(d => SHOWN.includes(d[1]) || used.has(d[1]) || BE.extra.includes(d[1]));
+  for (const t of beHits()) if (!BE.drums.some(d => d[1] === t[1]) && !rows.some(r => r[1] === t[1])) rows.push(["Drum " + t[1], t[1]]);
+  let html = "";
+  for (const [name, note] of rows) {
+    html += `<tr><th class="${used.has(note) ? "used" : ""}">${h(name)}</th>`;
+    for (let c = 0; c < cols; c++) {
+      const v = beVel(c, note), down = Math.floor(c / per) % 2 === 0;
+      html += `<td class="${c && c % per === 0 ? "beat1" : ""}"><button class="cell${down ? " down" : ""}${v ? " v" + velClass(v) : ""}" data-s="${c}" data-n="${note}">${v ? velClass(v) : c % per === 0 ? "·" : ""}</button></td>`;
+    }
+    html += "</tr>";
+  }
+  $("be-grid").innerHTML = html;
+  $("be-add").innerHTML = '<option value="">+ Add a drum...</option>' + BE.drums.filter(d => !rows.some(r => r[1] === d[1])).map(d => `<option value="${d[1]}">${h(d[0])}</option>`).join("");
+}
+$("be-grid").addEventListener("click", e => {
+  const c = e.target.closest(".cell"); if (!c) return;
+  const step = +c.dataset.s, note = +c.dataset.n, v = beVel(step, note);
+  const next = v === 0 ? 100 : v >= 115 ? 72 : v >= 88 ? 124 : v >= 58 ? 42 : 0;   // hit, accent, soft, ghost, off
+  BE.orig = null;
+  BE.parts[BE.part].hits = beHits().filter(t => !(t[0] === step && t[1] === note));
+  if (next) BE.parts[BE.part].hits.push([step, note, next]);
+  partChanged(); beatChanged(); drawBeatGrid();
+});
+function beAddDrum(n) { if (n) { BE.extra.push(+n); drawBeatGrid(); } }
+function bePart(p) { BE.part = p; drawBeatGrid(); if (S.playing) act("edit_part", p); }
+function beBars() {
+  const part = BE.parts[BE.part];
+  part.bars = part.bars === 2 ? 1 : 2;
+  if (part.bars === 2 && !part.hits.some(t => t[0] >= BE.steps)) part.hits = part.hits.concat(part.hits.map(t => [t[0] + BE.steps, t[1], t[2]]));   // the second bar starts as a copy
+  part.hits = part.hits.filter(t => t[0] < BE.steps * part.bars);
+  partChanged(); beatChanged(); drawBeatGrid();
+}
+function beCopyVerse() { BE.parts[BE.part] = JSON.parse(JSON.stringify(BE.parts.verse)); partChanged(); beatChanged(); drawBeatGrid(); }
+function beClear() { BE.parts[BE.part].hits = []; partChanged(); beatChanged(); drawBeatGrid(); }
+function setMeter(m) {
+  const [, q, st] = METERS.find(x => x[0] === m) || [m, BE.quarters, BE.steps];
+  if (!BE.orig) BE.orig = {meter: BE.meter, parts: JSON.parse(JSON.stringify(BE.parts))};
+  if (m === BE.orig.meter) BE.parts = JSON.parse(JSON.stringify(BE.orig.parts));   // back where it started: every hit comes back
+  else {
+    const old = BE.steps;   // each bar keeps the hits that still fit in the new one
+    for (const p of Object.values(BE.parts))
+      p.hits = p.hits.filter(t => t[0] % old < st).map(t => [Math.floor(t[0] / old) * st + t[0] % old, t[1], t[2]]);
+  }
+  BE.meter = m; BE.quarters = q; BE.steps = st;
+  beatChanged(); drawBeatGrid();
+}
+function beatChanged(preview = true) { BE.dirty = true; if (preview) bePreview(); }
+const CH = v => v >= 115 ? "X" : v >= 88 ? "x" : v >= 58 ? "o" : "g";
+function beatText() {
+  const name = ($("be-name").value.trim() || "My Beat").replace(/[\r\n]/g, " ").slice(0, 60);
+  const bpm = Math.max(30, Math.min(300, Math.round(+$("be-bpm").value || BE.bpm)));
+  let t = `name = ${name}\nmeter = ${BE.meter}\nquarters = ${BE.quarters}\nsteps = ${BE.steps}\nswing = ${+$("be-swing").value}\nbpm = ${bpm}\n`;
+  for (const [p] of PARTS) {
+    if (p === "fill-to-verse" && !BE.split) continue;   // the same fill both ways
+    const part = BE.parts[p], len = BE.steps * part.bars;
+    t += `\n[${p}]\n`;
+    const notes = [...new Set(part.hits.map(x => x[1]))];
+    for (const n of notes) {
+      const lane = Array(len).fill(".");
+      for (const x of part.hits) if (x[1] === n && x[0] < len) lane[x[0]] = CH(x[2]);
+      t += `${n}: ${lane.join("")}\n`;
+    }
+    if (!notes.length && p === "verse") t += "42: " + ".".repeat(len) + "\n";
+  }
+  return t;
+}
+function bePreview(now) {
+  clearTimeout(beTimer);
+  beTimer = setTimeout(() => act("edit_preview", beatText()), now ? 0 : 150);
+}
+async function bePlay() {
+  await act("edit_preview", beatText());
+  await act("edit_part", BE.part);
+  await act("edit_play", Math.round(+$("be-bpm").value || BE.bpm));
+  $("be-play").textContent = S.playing ? "Stop" : "Play";
+}
+async function beSave(asNew) {
+  if (!BE.parts.verse.hits.length) { toast("Put something in the verse first."); return; }
+  const b = new URLSearchParams({id: BE.user ? BE.id : "", text: beatText(), as_new: asNew ? "1" : "0", song: BE.song});
+  let r; try { r = await api("/api/beat", b); } catch (e) { return; }
+  BE.id = r.id; BE.user = true; BE.dirty = false;
+  $("be-title").textContent = "Edit Beat"; $("be-del").classList.remove("hide"); $("be-saveas").classList.remove("hide");
+  $("be-about").textContent = "One of your beats: Save keeps your changes in it.";
+  toast(`Saved "${r.name}" in My Beats` + (BE.song ? ", and it's this song's beat now." : "."));
+  await loadLists();
+  if (BE.song) { await act("edit_done", r.id); const back = BE.song; BE = null; editSong(back); }
+}
+async function beLeave() {
+  if (BE && BE.dirty && !confirm("Leave without saving your changes?")) return;
+  const back = BE ? BE.back : "beats", song = BE ? BE.song : "";
+  await act("edit_done", "");
+  BE = null;
+  if (back === "song" && song) editSong(song); else showTab("beats");
+}
+async function beDelete() {
+  if (!BE || !BE.user || !confirm(`Delete the beat "${BE.name}"? Songs that use it go back to the beat that's on.`)) return;
+  try { await api("/api/beat/delete", new URLSearchParams({id: BE.id})); } catch (e) { return; }
+  await act("edit_done", ""); BE = null; toast("Deleted."); showTab("beats");
+}
+async function editSongBeat() {
+  const id = await saveSong(true);   // keep what you've typed
+  if (id) editBeat($("e-style").value, id, "song");
+}
+
+// ---- songs and set lists
+async function loadLibrary() {
+  try { LIB = await api("/api/library"); } catch (e) { return; }
+  const sel = $("setlist");
+  sel.innerHTML = '<option value="">All songs (A–Z)</option>' + LIB.setlists.map(l => `<option ${l.name === LIB.current ? "selected" : ""}>${h(l.name)}</option>`).join("");
+  drawSongs();
+}
+function currentList() { return LIB.setlists.find(l => l.name === LIB.current); }
+function drawSongs() {
+  const list = $("songlist"), cl = currentList();
+  const byId = Object.fromEntries(LIB.songs.map(s => [s.id, s]));
+  let items = adding || !cl ? LIB.songs : cl.songs.map(id => byId[id]).filter(Boolean);
+  $("reorderbtn").classList.toggle("hide", !cl);
+  $("addbtn").classList.toggle("hide", !cl);
+  $("addbtn").classList.toggle("on", adding);
+  $("reorderbtn").classList.toggle("on", reorder);
+  if (!items.length) { list.innerHTML = '<p class="small">No songs here yet. Tap + Song, or import from a set list app.</p>'; return; }
+  list.innerHTML = "";
+  items.forEach((s, i) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.style.marginBottom = "8px";
+    const b = document.createElement("button");
+    const inList = cl && cl.songs.includes(s.id);
+    b.innerHTML = (adding ? (inList ? "✓ " : "+ ") : (cl ? (i + 1) + ". " : "")) + h(s.name) + (s.artist ? ` <span class="small">— ${h(s.artist)}</span>` : "") +
+      ` <span class="small">· ${s.bpm} BPM${s.estimated ? ' <b style="color:var(--accent)">est.</b>' : ""}${s.lyrics ? " · lyrics" : ""}</span>`;
+
+    if (S.song_id === s.id) b.classList.add("cur");
+    b.onclick = () => {
+      if (adding) { toggleInList(s.id); return; }
+      if (!okToSwitch()) return;
+      act("play_song", s.id).then(() => { toast("Loaded " + s.name); });
+    };
+    row.appendChild(b);
+    if (reorder && cl) {
+      const up = document.createElement("button"); up.textContent = "▲"; up.onclick = () => move(i, -1);
+      const dn = document.createElement("button"); dn.textContent = "▼"; dn.onclick = () => move(i, 1);
+      const rm = document.createElement("button"); rm.textContent = "✕"; rm.onclick = () => removeFromList(i);
+      row.append(up, dn, rm);
+    } else if (!adding) {
+      const e = document.createElement("button"); e.textContent = "Edit"; e.style.flex = "0 0 auto"; e.onclick = () => editSong(s.id);
+      row.appendChild(e);
+    }
+    list.appendChild(row);
+  });
+}
+function saveList(l) { return api("/api/setlist", new URLSearchParams({name: l.name, songs: l.songs.join(",")})).then(loadLibrary); }
+function move(i, d) { const l = currentList(); const j = i + d; if (j < 0 || j >= l.songs.length) return; [l.songs[i], l.songs[j]] = [l.songs[j], l.songs[i]]; saveList(l); }
+function removeFromList(i) { const l = currentList(); l.songs.splice(i, 1); saveList(l); }
+function toggleInList(id) { const l = currentList(); const k = l.songs.indexOf(id); if (k >= 0) l.songs.splice(k, 1); else l.songs.push(id); saveList(l); }
+function toggleReorder() { reorder = !reorder; adding = false; drawSongs(); }
+function addToList() { adding = !adding; reorder = false; drawSongs(); }
+function pickSetlist(name) { act("setlist", name).then(loadLibrary); }
+function newSetlist() {
+  const name = prompt("Name the new set list:", "Friday Gig");
+  if (!name) return;
+  api("/api/setlist", new URLSearchParams({name, songs: ""})).then(j => act("setlist", j.name)).then(() => { adding = true; loadLibrary(); });
+}
+async function importFile() {
+  const f = $("importfile").files[0];
+  if (!f) { toast("Choose the exported file first."); return; }
+  toast("Importing\u2026");
+  try {
+    const j = await api("/api/import", f);   // the file as it is (a database is binary)
+    toast(`Imported ${j.songs} songs` + (j.setlists ? ` and ${j.setlists} set lists.` : "."));
+    loadLibrary();
+  } catch (e) {}
+}
+
+function fillSelects() {
+  $("e-style").innerHTML = L.styles.map(s => `<option value="${h(s[0])}">${L.favorites.includes(s[0]) ? "★ " : ""}${h(s[2])}: ${h(s[1])} (${h(s[3])})</option>`).join("");
+  $("e-kit").innerHTML = '<option value="">(keep the kit that’s on)</option>' + L.kits.map(k => `<option value="${h(k[0])}">${h(k[1])}</option>`).join("");
+  const opts = (list) => list.map(([v, t]) => `<option value="${v}">${t}</option>`).join("");
+  $("e-swing").innerHTML = opts([[-1, "The beat's own"], ...[0, 10, 20, 25, 30, 35, 40, 50, 60, 75, 100].map(n => [n / 100, n + "%"])]);
+  $("e-pocket").innerHTML = opts([...Array(31).keys()].map(i => i - 15).map(n => [n, n === 0 ? "On the beat" : n > 0 ? "Laid back " + n + " ms" : "Pushed " + (-n) + " ms"]));
+  $("e-loose").innerHTML = opts([[-1, "As set"], ...[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(n => [n / 100, n + "%"])]);
+}
+async function editSong(id) {
+  editing = id;
+  fillSelects();
+  let s = {name: "", artist: "", key: "", style: S.style || "pop", kit: "", bpm: S.bpm || 100, loop_bars: S.bars_a || 4, loop_bars_b: 0, slot: -1, count_in: 1, notes: "", lyrics: ""};
+  if (id) { try { s = await api("/api/song?id=" + encodeURIComponent(id)); } catch (e) { return; } }
+  $("edittitle").textContent = id ? "Edit Song" : "New Song";
+  $("e-name").value = s.name; $("e-artist").value = s.artist; $("e-key").value = s.key;
+  $("e-style").value = s.style; $("e-kit").value = s.kit; $("e-bpm").value = s.bpm; $("e-bars").value = s.loop_bars; $("e-barsb").value = s.loop_bars_b > 0 ? s.loop_bars_b : "";
+  $("e-slot").value = s.slot >= 0 ? s.slot : ""; $("e-count").value = s.count_in; $("e-notes").value = s.notes; $("e-lyrics").value = s.lyrics;
+  setFeel(s.swing ?? -1, s.pocket ?? 0, s.loose ?? -1, s.locked ?? -1);
+  $("delbtn").classList.toggle("hide", !id);
+  showTab("edit");
+}
+// a value that isn't in a list (an odd swing, say) is added to it, so it's kept as it was
+function pickValue(id, v, label) {
+  const sel = $(id), want = String(+v);
+  if (![...sel.options].some(o => String(+o.value) === want)) sel.insertAdjacentHTML("beforeend", `<option value="${want}">${label}</option>`);
+  [...sel.options].forEach(o => { o.selected = String(+o.value) === want; });
+}
+function setFeel(swing, pocket, loose, locked) {
+  pickValue("e-swing", swing, Math.round(swing * 100) + "%");
+  pickValue("e-pocket", Math.round(pocket), Math.round(pocket) + " ms");
+  pickValue("e-loose", loose, Math.round(loose * 100) + "%");
+  pickValue("e-locked", locked, "As set");
+}
+function bpmTimes(f) {
+  const v = parseFloat($("e-bpm").value);
+  if (v > 0) $("e-bpm").value = Math.max(30, Math.min(300, Math.round(v * f * 2) / 2));
+}
+function usePlaying() {
+  $("e-bpm").value = Math.round(S.bpm * 2) / 2;
+  if (S.style && S.style !== "edit-preview") $("e-style").value = S.style;
+  $("e-kit").value = S.kit || "";
+  if (S.bars_a) { $("e-bars").value = S.bars_a; $("e-barsb").value = S.bars_b !== S.bars_a ? S.bars_b : ""; }
+  setFeel(S.swing ?? -1, S.pocket ?? 0, S.loose ?? -1, S.locked ? 1 : 0);
+  toast("Filled in from what's playing. Save to keep it.");
+}
+async function saveSong(stay) {
+  const b = new URLSearchParams({id: editing, name: $("e-name").value.trim(), artist: $("e-artist").value.trim(), key: $("e-key").value.trim(),
+    style: $("e-style").value, kit: $("e-kit").value, bpm: $("e-bpm").value, loop_bars: $("e-bars").value, loop_bars_b: $("e-barsb").value || "0", slot: $("e-slot").value,
+    count_in: $("e-count").value, swing: $("e-swing").value, pocket: $("e-pocket").value, loose: $("e-loose").value, locked: $("e-locked").value,
+    notes: $("e-notes").value, lyrics: $("e-lyrics").value});
+  if (!b.get("name")) { toast("The song needs a name."); return; }
+  try {
+    const r = await api("/api/song", b);
+    lyricSong = null;
+    if (stay) { editing = r.id; return r.id; }
+    toast("Saved."); showTab("songs");
+  } catch (e) {}
+}
+async function deleteSong() {
+  if (!editing || !confirm("Delete this song? Its lyrics go with it.")) return;
+  await api("/api/song/delete", new URLSearchParams({id: editing}));
+  showTab("songs");
+}
+
+// ---- beats and kits
+async function loadLists() { try { L = await api("/api/lists"); } catch (e) {} }
+function beatView(v) { beatTab = v; ["fav", "all", "kits"].forEach(k => $(k === "fav" ? "favbtn" : k === "all" ? "allbtn" : "kitbtn").classList.toggle("on", k === v)); drawBeats(); }
+async function drawBeats() {
+  await loadLists();
+  const list = $("beatlist");
+  list.innerHTML = "";
+  if (beatTab === "kits") {
+    for (const k of L.kits) {
+      const b = document.createElement("button");
+      b.innerHTML = h(k[1]) + ` <span class="small">${h(k[2])}</span>`;
+      if (k[0] === S.kit) b.classList.add("cur");
+      b.onclick = () => act("kit", k[0]).then(drawBeats);
+      list.appendChild(b);
+    }
+    return;
+  }
+  let styles = L.styles;
+  if (beatTab === "fav") {
+    styles = L.favorites.map(id => L.styles.find(s => s[0] === id)).filter(Boolean);
+    if (!styles.length) { list.innerHTML = '<p class="small">No favorites yet. Open All Beats and tap ☆ to star the ones you use.</p>'; return; }
+  }
+  let fam = "";
+  for (const s of styles) {
+    if (beatTab === "all" && s[2] !== fam) { fam = s[2]; const d = document.createElement("div"); d.className = "fam"; d.textContent = fam; list.appendChild(d); }
+    const row = document.createElement("div"); row.className = "row"; row.style.marginBottom = "8px";
+    const b = document.createElement("button");
+
+    b.innerHTML = h(s[1]) + ` <span class="small">${h(s[3])} · ${s[4]} BPM</span>` + (s[5] ? `<br><span class="small">${h(s[5])}</span>` : "");
+    if (s[0] === S.style) b.classList.add("cur");
+    b.onclick = () => act("style", s[0]).then(() => act("tempo", s[4])).then(drawBeats);
+    const star = document.createElement("button");
+    const fav = L.favorites.includes(s[0]);
+    star.innerHTML = fav ? '<span class="star">★</span>' : "☆";
+    star.className = "starbtn";
+    star.onclick = () => act("favorite", s[0]).then(drawBeats);
+    const ed = document.createElement("button");
+    ed.textContent = "Edit"; ed.className = "editbtn";
+    ed.onclick = () => editBeat(s[0], "", "beats");
+    row.append(b, star, ed);
+    list.appendChild(row);
+  }
+}
+
+// ---- this device's own settings (kept on this device)
+let withDrums = store.get("barline-withdrums", "0") === "1", keysMode = store.get("barline-keys", "laptop"), awakeOn = store.get("barline-awake", "1") === "1";
+let quitting = false, localInfo = null, pauseLen = store.get("barline-pause", "bar");
+function setPauseLen(v) { pauseLen = v; store.set("barline-pause", v); }
+function dockPause() { act(pauseLen === "half" ? "pause_half" : "pause_bar"); }
+function drawSettings() {
+  $("awakebtn").textContent = awakeOn ? "On" : "Off"; $("awakebtn").classList.toggle("on", awakeOn);
+  $("withdrumsbtn").textContent = withDrums ? "On" : "Off"; $("withdrumsbtn").classList.toggle("on", withDrums);
+  $("keysmode").value = keysMode;
+  $("pauselen").value = pauseLen;
+  const k = L.keys || {}, name = a => Object.keys(k).find(x => k[x] === a) || "?";
+  $("keyshelp").textContent = keysMode === "laptop" ? `Page Down = ${name("smart") === "pgdn" ? "record, then overdub" : k.pgdn || "nothing"}, Page Up = ${k.pgup === "undo2" ? "undo" : k.pgup || "nothing"}, ` +
+    `${name("play")} = drums, ${name("next_part")} = next part, arrows = previous / next song (the same keys as the laptop).`
+    : keysMode === "scroll" ? "Page Down / Down / Right scroll the lyrics on; Page Up / Up / Left go back." : "";
+  if (isLocal) loadLocal();
+}
+function toggleWithDrums() { withDrums = !withDrums; store.set("barline-withdrums", withDrums ? "1" : "0"); drawSettings(); }
+function setKeysMode(v) { keysMode = v; store.set("barline-keys", v); drawSettings(); }
+function toggleAwake() { awakeOn = !awakeOn; store.set("barline-awake", awakeOn ? "1" : "0"); keepAwake(); drawSettings(); }
+
+// keep the screen on: the Wake Lock where the browser allows it (this computer's window), else a tiny
+// silent video playing on a loop (what keeps an iPad awake on a plain home-network address)
+const AWAKE_VIDEO = "data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAW/bW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAfQAAAPoAAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAll0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAPoAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAD6AAAAAAAABAAAAAAHRbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABfG1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAATxzdGJsAAAAuHN0c2QAAAAAAAAAAQAAAKhhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFExhdmM2My4xLjEwMSBsaWJ4MjY0AAAAAAAAAAAAAAAAGP//AAAALmF2Y0MBQsAK/+EAFmdCwArZHsBEAAADAAQAAAMACDxImSABAAVoy4PEyAAAABBwYXNwAAAAAQAAAAEAAAAUYnRydAAAAAAAAApQAAAAAAAAABhzdHRzAAAAAAAAAAEAAAACAABAAAAAABRzdHNzAAAAAAAAAAEAAAABAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAABAAAAAQAAABxzdHN6AAAAAAAAAAAAAAACAAACiQAAAAsAAAAYc3RjbwAAAAAAAAACAAAGAgAACKsAAAKRdHJhawAAAFx0a2hkAAAAAwAAAAAAAAAAAAAAAgAAAAAAAD6AAAAAAAAAAAAAAAABAQAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAJGVkdHMAAAAcZWxzdAAAAAAAAAABAAA+gAAABAAAAQAAAAACCW1kaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAAH0AAAEKAVcQAAAAAAC1oZGxyAAAAAAAAAABzb3VuAAAAAAAAAAAAAAAAU291bmRIYW5kbGVyAAAAAbRtaW5mAAAAEHNtaGQAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAAXhzdGJsAAAAfnN0c2QAAAAAAAAAAQAAAG5tcDRhAAAAAAAAAAEAAAAAAAAAAAABABAAAAAAH0AAAAAAADZlc2RzAAAAAAOAgIAlAAIABICAgBdAFQAAAAAAH0AAAAE4BYCAgAUViFblAAaAgIABAgAAABRidHJ0AAAAAAAAH0AAAAE4AAAAIHN0dHMAAAAAAAAAAgAAABAAAAQAAAAAAQAAAoAAAAAoc3RzYwAAAAAAAAACAAAAAQAAAAEAAAABAAAAAgAAAAgAAAABAAAAWHN0c3oAAAAAAAAAAAAAABEAAAATAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAABxzdGNvAAAAAAAAAAMAAAXvAAAIiwAACLYAAAAac2dwZAEAAAByb2xsAAAAAgAAAAH//wAAABxzYmdwAAAAAHJvbGwAAAABAAAAEQAAAAEAAABhdWR0YQAAAFltZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAACxpbHN0AAAAJKl0b28AAAAcZGF0YQAAAAEAAAAATGF2ZjYzLjEuMTAxAAAACGZyZWUAAALvbWRhdNwATGF2YzYzLjEuMTAxAAIwQA4AAAJyBgX//27cRem95tlIt5Ys2CDZI+7veDI2NCAtIGNvcmUgMTY1IHIzMjIyIGIzNTYwNWEgLSBILjI2NC9NUEVHLTQgQVZDIGNvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDI1IC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MCByZWY9MyBkZWJsb2NrPTE6LTM6LTMgYW5hbHlzZT0weDE6MHgxMTEgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTIuMDA6MC43MCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTAgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9LTQgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjIwAIAAAAAPZYiEBfOf//8PRQABV5+AARggBwEYIAcBGCAHARggBwEYIAcBGCAHARggBwEYIAcAAAAHQZo4C+c6gAEYIAcBGCAHARggBwEYIAcBGCAHARggBwEYIAcBGCAH";
+let wakeLock = null;
+async function keepAwake() {
+  const v = $("awake");
+  if (!awakeOn) { if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; } v.pause(); return; }
+  if ("wakeLock" in navigator && window.isSecureContext) {
+    try { if (!wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } return; } catch (e) {}
+  }
+  if (!v.src) v.src = AWAKE_VIDEO;
+  v.play().catch(() => {});
+}
+// browsers only start it after a tap, and stop it when the page is hidden: so every tap makes sure
+document.addEventListener("pointerdown", () => { if (awakeOn && $("awake").paused && !wakeLock) keepAwake(); }, {passive: true});
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { keepAwake(); poll(); } });
+
+// ---- keys: a footswitch (page turner) or keyboard on this device
+const KEYNAME = {" ": "space", PageDown: "pgdn", PageUp: "pgup", ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down",
+                 Enter: "enter", Tab: "tab", Escape: "esc"};
+document.addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey || keysMode === "off") return;
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  if (/INPUT|TEXTAREA|SELECT/.test(tag) || $("app").classList.contains("hide")) return;
+  if (tab === "beatedit" || tab === "edit") return;
+  const key = KEYNAME[e.key] || (e.key.length === 1 ? e.key.toLowerCase() : "");
+  if (!key) return;
+  if (keysMode === "scroll") {
+    if (tab !== "lyrics") return;
+    const m = document.querySelector("main"), d = /pgdn|down|right|space/.test(key) ? 1 : /pgup|up|left/.test(key) ? -1 : 0;
+    if (!d) return;
+    e.preventDefault();
+    m.scrollBy({top: d * m.clientHeight * 0.6, behavior: "smooth"});
+    setTimeout(() => { scrollPos = m.scrollTop; }, 400);
+    return;
+  }
+  // a button clicked a moment ago still has the focus, and the browser would press it again on space/enter
+  if (tag === "BUTTON") document.activeElement.blur();
+  const k = L.keys || {};
+  let a = k[key] || (key === "=" ? "tempo_up" : "");
+  if (!a) return;
+  e.preventDefault();
+  if (a === "beats" || a === "all_beats") { showTab("beats"); beatView(a === "beats" && L.favorites.length ? "fav" : "all"); }
+  else if (a === "kits") { showTab("beats"); beatView("kits"); }
+  else if (a === "songs") showTab("songs");
+  else if (a === "settings") showTab("settings");
+  else if (a === "builder") editBeat(S.style, "", "beats");
+  else if (a === "tap") tapTempo();
+  else if (a === "next_song" || a === "prev_song") songStep(a === "next_song" ? 1 : -1);
+  else if (a === "help" || a === "window" || a === "quit") return;
+  else act(a);
+});
+
+// ---- this computer's window: how to pair the iPad, Quit, and closing the window quits (when it's the window)
+async function loadLocal() {
+  try { localInfo = await api("/api/local"); } catch (e) { return; }
+  $("localcard").classList.remove("hide");
+  $("version").textContent = "Barline " + localInfo.version;
+  const addr = localInfo.bookmark || localInfo.address;
+  $("localpair").innerHTML = localInfo.web ? `iPad or phone (on ${h(S && S.network_name || "the same Wi-Fi")}): open <b>${h(addr)}</b> and type the code <b>${h(localInfo.code)}</b>.` +
+    (localInfo.bookmark ? ` (Or ${h(localInfo.address)}.)` : "") : "The iPad page is turned off in the settings file.";
+}
+window.addEventListener("beforeunload", e => {
+  if (isLocal && localInfo && localInfo.window_mode && !quitting && S.playing) { e.preventDefault(); e.returnValue = ""; }   // the drums are playing: are you sure?
+});
+window.addEventListener("pagehide", () => {
+  if (isLocal && !quitting) navigator.sendBeacon("/api/bye", new URLSearchParams({token}));
+});
+
+async function start() {
+  $("pair").classList.add("hide"); $("app").classList.remove("hide"); $("nav").classList.remove("hide");
+  await loadLists();
+  if (isLocal) loadLocal();
+  setupHolds();
+  keepAwake();
+  poll();
+  requestAnimationFrame(tick);
+}
+if (token) start(); else showPair();
+</script>
+</body>
+</html>
+)WEBPAGE";

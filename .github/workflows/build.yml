@@ -1,0 +1,64 @@
+# Builds Barline for Linux, Windows, and macOS on every push, and runs each on its own system:
+# the version, a few seconds of drums rendered offline, and the sound and MIDI devices it finds.
+name: build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux-and-windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.0
+      - name: Linux (static, Intel/AMD + ARM)
+        run: sh tools/build.sh release
+      - name: Windows (Intel/AMD + ARM), made with Zig
+        run: sh tools/build.sh windows
+      - name: Try the Linux program
+        run: |
+          ./build/barline-x86_64 --version
+          ./build/barline-x86_64 render rock boom8 3 /tmp/test.wav
+      - uses: actions/upload-artifact@v5
+        with:
+          name: barline-linux-windows
+          path: |
+            build/barline-x86_64
+            build/barline-aarch64
+            build/barline-windows-x86_64.exe
+            build/barline-windows-aarch64.exe
+
+  windows-check:
+    needs: linux-and-windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: barline-linux-windows
+      - name: Try the Windows program
+        shell: pwsh
+        run: |
+          .\barline-windows-x86_64.exe --version
+          .\barline-windows-x86_64.exe render rock boom8 3 test.wav
+          if (-not (Test-Path test.wav)) { exit 1 }
+          .\barline-windows-x86_64.exe devices
+
+  mac:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v5
+      - name: macOS (Apple silicon + Intel in one)
+        run: sh tools/build.sh mac
+      - name: Try the Mac program
+        run: |
+          lipo -info build/barline-mac
+          ./build/barline-mac --version
+          ./build/barline-mac render rock boom8 3 /tmp/test.wav
+          ./build/barline-mac devices
+      - uses: actions/upload-artifact@v5
+        with:
+          name: barline-mac
+          path: build/barline-mac

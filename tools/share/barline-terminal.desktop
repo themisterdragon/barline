@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Barline (terminal)
+Comment=Barline's keyboard screen, in a terminal
+Exec=@BIN@
+Icon=barline
+Terminal=true
+Categories=AudioVideo;Audio;Music;

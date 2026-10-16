@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Barline
+GenericName=Drums and loop timing
+Comment=Drums, a click, and perfectly timed loops for a USB looper pedal
+Exec=@BIN@ window
+Icon=barline
+Terminal=false
+Categories=AudioVideo;Audio;Music;
+Keywords=drums;looper;metronome;click;

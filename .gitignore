@@ -1,0 +1,6 @@
+build/
+/barline
+/kits/
+*.o
+personal/
+__pycache__/
